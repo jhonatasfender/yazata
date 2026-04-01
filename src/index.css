@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #09090b;
+  font-family:
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.account-profile-fill .cl-userProfile-root,
+.account-profile-fill .cl-cardBox,
+.account-profile-fill .cl-scrollBox,
+.account-profile-fill .cl-pageScrollBox,
+.account-profile-fill .cl-card {
+  width: 100% !important;
+  max-width: none !important;
+}
