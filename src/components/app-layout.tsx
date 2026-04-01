@@ -32,7 +32,7 @@ export const AppLayout = () => {
   const navItems = useMemo(() => {
     if (employee) return getNavItems(true)
     if (manager) return getNavItems(false)
-    return []
+    return getNavItems(true)
   }, [employee, manager])
 
   if (loading) {
@@ -64,7 +64,10 @@ export const AppLayout = () => {
           />
 
           <div className="min-w-0 flex-1 space-y-6">
-            <AppTopbar onOpenMenu={() => setMobileOpen(true)} />
+            <AppTopbar
+              onOpenMenu={() => setMobileOpen(true)}
+              currentEmployeeId={employee?.id ?? null}
+            />
 
             <Outlet
               context={{

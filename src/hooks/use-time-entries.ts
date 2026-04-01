@@ -41,15 +41,16 @@ export const useTimeEntries = ({
     setError: setErrorState,
   })
 
-  const { createEntry, updateEntry, deleteEntry } = useTimeEntriesActions({
-    mode,
-    employeeId,
-    hourlyRateCents,
-    repository,
-    reloadEntries: loadEntries,
-    setLoading: setLoadingState,
-    setError: setErrorState,
-  })
+  const { createEntry, createEntryAndGetId, updateEntry, deleteEntry } =
+    useTimeEntriesActions({
+      mode,
+      employeeId,
+      hourlyRateCents,
+      repository,
+      reloadEntries: loadEntries,
+      setLoading: setLoadingState,
+      setError: setErrorState,
+    })
 
   useEffect(() => {
     if (!enabled) return
@@ -66,6 +67,7 @@ export const useTimeEntries = ({
     totalWeekHours,
     totalWeekAmountCents,
     createEntry,
+    createEntryAndGetId,
     updateEntry,
     deleteEntry,
     reloadEntries: loadEntries,

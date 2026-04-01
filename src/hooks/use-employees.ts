@@ -59,7 +59,9 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
         {
           manager_id: managerId,
           employee_email: normalizedEmail,
+          employee_clerk_user_id: null,
           hourly_rate_cents: hourlyRateCents,
+          status: 'pending',
         },
         {
           onConflict: 'manager_id,employee_email',

@@ -27,7 +27,7 @@ export const Select = ({ name, label, options, className, ...props }: SelectProp
             {...field}
             {...props}
             className={cn(
-              'w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 outline-none ring-violet-400 focus:ring-2',
+              'w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 pr-10 outline-none ring-violet-400 focus:ring-2',
               className,
             )}
           >

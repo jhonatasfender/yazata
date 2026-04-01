@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Navigate, useOutletContext } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
 import type { AppLayoutContext } from '../components/app-layout'
 import { useProjects } from '../hooks/use-projects'
 
@@ -15,9 +15,7 @@ export const ProjectsPage = () => {
       employeeId: employee?.id,
     })
 
-  if (!manager && !employee) {
-    return <Navigate to="/" replace />
-  }
+  const isUnlinked = !manager && !employee
 
   const activeProjects = projects.filter((project) => project.is_active)
   const inactiveProjects = projects.filter((project) => !project.is_active)
@@ -37,6 +35,13 @@ export const ProjectsPage = () => {
 
   return (
     <section className="space-y-6">
+      {isUnlinked ? (
+        <article className="rounded-2xl border border-amber-800/70 bg-amber-950/20 p-4 text-sm text-amber-100">
+          Seu usuário ainda não está vinculado como funcionário ou gestor. A visualização
+          de projetos foi liberada, mas alterações exigem vínculo ativo.
+        </article>
+      ) : null}
+
       <article className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
         <h2 className="text-lg font-semibold">Projetos da equipe</h2>
         <p className="mt-2 text-sm text-zinc-400">

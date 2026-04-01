@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import { cn } from '../../lib/utils'
 import type { NavItem } from './nav-items'
 import { desktopSidebarVariants } from './sidebar-motion'
 import { SidebarNavLink } from './sidebar-nav-link'
@@ -35,10 +36,10 @@ export const DesktopSidebar = ({
       initial={false}
     >
       <div
-        className={[
+        className={cn(
           'mb-6',
           desktopExpanded ? 'flex items-center justify-between gap-2' : 'block',
-        ].join(' ')}
+        )}
       >
         <AnimatePresence initial={false} mode="wait">
           {desktopExpanded ? (
@@ -57,10 +58,10 @@ export const DesktopSidebar = ({
         <button
           type="button"
           aria-label="Expandir ou recolher sidebar"
-          className={[
+          className={cn(
             'rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-300 transition-colors hover:bg-zinc-800',
             desktopExpanded ? 'px-2 py-1' : 'w-full px-2 py-2',
-          ].join(' ')}
+          )}
           onClick={onToggleExpanded}
         >
           <motion.span

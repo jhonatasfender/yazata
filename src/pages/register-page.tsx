@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Navigate, useOutletContext } from 'react-router-dom'
 import type { AppLayoutContext } from '../components/app-layout'
 import { useProjects } from '../hooks/use-projects'
@@ -18,15 +18,44 @@ const defaultForm = (): TimeEntryFormValues => ({
   projectId: '',
 })
 
+const toLocalDate = (value: Date) => {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const toLocalTime = (value: Date, includeSeconds = false) => {
+  const hours = String(value.getHours()).padStart(2, '0')
+  const minutes = String(value.getMinutes()).padStart(2, '0')
+  if (!includeSeconds) return `${hours}:${minutes}`
+  const seconds = String(value.getSeconds()).padStart(2, '0')
+  return `${hours}:${minutes}:${seconds}`
+}
+
+const QUICK_ENTRY_STORAGE_KEY = 'tracker.quick-entry'
+
+const formatElapsedTime = (elapsedMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}
+
 export const RegisterPage = () => {
   const { manager, employee } = useOutletContext<AppLayoutContext>()
   const [formVersion, setFormVersion] = useState(0)
   const [editingEntry, setEditingEntry] = useState<EditingEntry | null>(null)
+  const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
+  const [quickEntryId, setQuickEntryId] = useState<string | null>(null)
+  const [currentTimeMs, setCurrentTimeMs] = useState<number | null>(null)
   const {
     entries,
     loading,
     error,
     createEntry,
+    createEntryAndGetId,
     updateEntry,
     deleteEntry,
     totalWeekHours,
@@ -41,6 +70,65 @@ export const RegisterPage = () => {
     enabled: Boolean(employee),
     employeeId: employee?.id,
   })
+
+  useEffect(() => {
+    if (!employee) return
+
+    const raw = window.localStorage.getItem(QUICK_ENTRY_STORAGE_KEY)
+    if (!raw) return
+
+    try {
+      const parsed = JSON.parse(raw) as {
+        employeeId?: string
+        id?: string
+        startedAt?: string
+      }
+      if (parsed.employeeId !== employee.id || !parsed.id || !parsed.startedAt) return
+
+      setQuickEntryId(parsed.id)
+      setQuickEntryStartedAt(parsed.startedAt)
+    } catch {
+      window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
+    }
+  }, [employee])
+
+  useEffect(() => {
+    if (!employee || !quickEntryStartedAt || !quickEntryId) return
+
+    window.localStorage.setItem(
+      QUICK_ENTRY_STORAGE_KEY,
+      JSON.stringify({
+        employeeId: employee.id,
+        id: quickEntryId,
+        startedAt: quickEntryStartedAt,
+      }),
+    )
+  }, [employee, quickEntryId, quickEntryStartedAt])
+
+  useEffect(() => {
+    if (!quickEntryStartedAt) return
+
+    setCurrentTimeMs(Date.now())
+    const timer = window.setInterval(() => {
+      setCurrentTimeMs(Date.now())
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [quickEntryStartedAt])
+
+  const resetQuickEntry = () => {
+    setQuickEntryId(null)
+    setQuickEntryStartedAt(null)
+    setCurrentTimeMs(null)
+    window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
+  }
+
+  const quickEntryElapsedLabel = useMemo(() => {
+    if (!quickEntryStartedAt || !currentTimeMs) return null
+    const startedAtMs = new Date(quickEntryStartedAt).getTime()
+    if (Number.isNaN(startedAtMs)) return null
+    return formatElapsedTime(currentTimeMs - startedAtMs)
+  }, [currentTimeMs, quickEntryStartedAt])
 
   const onSubmit = async (values: TimeEntryFormValues) => {
     const success = editingEntry
@@ -70,6 +158,68 @@ export const RegisterPage = () => {
     const confirmed = window.confirm('Deseja realmente excluir este registro?')
     if (!confirmed) return
     await deleteEntry(id)
+  }
+
+  const onStartQuickEntry = async () => {
+    if (editingEntry || loading || quickEntryStartedAt || quickEntryId) return
+
+    const startDate = new Date()
+    const startedAtIso = startDate.toISOString()
+    const startTime = toLocalTime(startDate, true)
+    const oneSecondAfterStart = new Date(startDate.getTime() + 1_000)
+
+    // Start visual timer immediately on click, independent of network latency.
+    setQuickEntryStartedAt(startedAtIso)
+
+    const entryId = await createEntryAndGetId({
+      workDate: toLocalDate(startDate),
+      startTime,
+      endTime: toLocalTime(oneSecondAfterStart, true),
+      description: 'Registro rápido em andamento',
+      projectId: '',
+    })
+
+    if (!entryId) {
+      resetQuickEntry()
+      return
+    }
+
+    setQuickEntryId(entryId)
+  }
+
+  const onStopQuickEntry = async () => {
+    if (!quickEntryStartedAt || !quickEntryId || loading) return
+
+    const startDate = new Date(quickEntryStartedAt)
+    const endDate = new Date()
+    const workDate = toLocalDate(startDate)
+    const startTime = toLocalTime(startDate, true)
+    let endTime = toLocalTime(endDate, true)
+
+    if (toLocalDate(endDate) !== workDate) {
+      endTime = '23:59:59'
+    }
+
+    if (endTime <= startTime) {
+      const oneSecondAfterStart = new Date(startDate.getTime() + 1_000)
+      endTime = toLocalTime(oneSecondAfterStart, true)
+    }
+
+    if (endTime <= startTime) {
+      endTime = '23:59:59'
+    }
+
+    const success = await updateEntry(quickEntryId, {
+      workDate,
+      startTime,
+      endTime,
+      description: '',
+      projectId: '',
+    })
+
+    if (success) {
+      resetQuickEntry()
+    }
   }
 
   if (!employee) {
@@ -120,6 +270,10 @@ export const RegisterPage = () => {
         defaultValues={editingEntry?.values ?? defaultForm()}
         setEditingEntry={setEditingEntry}
         setFormVersion={setFormVersion}
+        quickEntryStartedAt={quickEntryStartedAt}
+        quickEntryElapsedLabel={quickEntryElapsedLabel}
+        onStartQuickEntry={onStartQuickEntry}
+        onStopQuickEntry={onStopQuickEntry}
       />
 
       <RegisterMiniBoard
@@ -127,6 +281,8 @@ export const RegisterPage = () => {
         totalWeekAmountCents={totalWeekAmountCents}
         entries={entries}
         error={error}
+        activeEntryId={quickEntryId}
+        activeEntryElapsedLabel={quickEntryElapsedLabel}
         onEditEntry={onEditEntry}
         onDeleteEntry={onDeleteEntry}
       />

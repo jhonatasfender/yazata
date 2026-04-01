@@ -34,10 +34,52 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
 
     const clerkUserId = user.id
     const email = user.primaryEmailAddress?.emailAddress?.toLowerCase() ?? null
+    const normalizedEmail = email?.trim() ?? null
 
     try {
-      if (email) {
-        await repository.claimEmployeeInvite({ clerkUserId, email })
+      const supabaseToken = await getToken({ template: 'supabase' })
+      let jwtEmailClaim: string | null = null
+      let jwtEmailAddressClaim: string | null = null
+
+      if (supabaseToken) {
+        try {
+          const payloadPart = supabaseToken.split('.')[1]
+          if (payloadPart) {
+            const payloadJson = JSON.parse(atob(payloadPart)) as Record<string, unknown>
+            jwtEmailClaim =
+              typeof payloadJson.email === 'string'
+                ? payloadJson.email.toLowerCase()
+                : null
+            jwtEmailAddressClaim =
+              typeof payloadJson.email_address === 'string'
+                ? payloadJson.email_address.toLowerCase()
+                : null
+          }
+        } catch {
+          // Ignore invalid token payload parse.
+        }
+      }
+
+      const candidateEmails = Array.from(
+        new Set(
+          [
+            normalizedEmail,
+            jwtEmailClaim,
+            jwtEmailAddressClaim,
+            ...(user.emailAddresses ?? []).map((item) =>
+              item.emailAddress.toLowerCase().trim(),
+            ),
+          ].filter((item): item is string => Boolean(item)),
+        ),
+      )
+
+      for (const candidateEmail of candidateEmails) {
+        const claimedRows = await repository.claimEmployeeInvite({
+          clerkUserId,
+          email: candidateEmail,
+        })
+
+        if (claimedRows > 0) break
       }
 
       const employeeData = await repository.findEmployeeByClerkUserId(clerkUserId)
@@ -53,6 +95,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
         (managedEmployeesCount > 0 || Boolean(managerData?.company_name))
 
       const managerToApply = isActiveManager ? managerData : null
+
       setManager(managerToApply)
       setEmployee(employeeData)
       setLoading(false)
@@ -60,7 +103,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
       setError((loadError as Error).message)
       setLoading(false)
     }
-  }, [enabled, repository, user])
+  }, [enabled, getToken, repository, user])
 
   useEffect(() => {
     void refresh()

@@ -71,15 +71,20 @@ export class TimeEntriesRepository {
     employeeId: string
     input: TimeEntryMutationInput
     hourlyRateCents: number
-  }): Promise<void> {
+  }): Promise<string> {
     const payload = TimeEntryMapper.toMutationFields(params.input, params.hourlyRateCents)
 
-    const { error } = await this.client.from('time_entries').insert({
-      employee_id: params.employeeId,
-      ...payload,
-    })
+    const { data, error } = await this.client
+      .from('time_entries')
+      .insert({
+        employee_id: params.employeeId,
+        ...payload,
+      })
+      .select('id')
+      .single<{ id: string }>()
 
     if (error) throw new Error(error.message)
+    return data.id
   }
 
   async updateForEmployee(params: {

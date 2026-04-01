@@ -1,12 +1,101 @@
-import { Clock3, FileText, Wallet } from 'lucide-react'
+import { Clock3, FileText, Pencil, Trash2, Wallet } from 'lucide-react'
 import { formatBRL } from '../../utils/money'
 import type { RegisterEntry } from './register-types'
+
+const formatWorkedTime = (workedHours: number) => {
+  const totalSeconds = Math.max(0, Math.round(workedHours * 3600))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    if (minutes > 0) return `${hours}h ${minutes}m`
+    return `${hours}h`
+  }
+  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
+  return `${seconds}s`
+}
+
+const toTimeInSeconds = (value: string) => {
+  const parts = value.split(':')
+  if (parts.length < 2 || parts.length > 3) return null
+
+  const [hoursRaw, minutesRaw, secondsRaw] = parts
+  const hours = Number(hoursRaw)
+  const minutes = Number(minutesRaw)
+  const seconds = secondsRaw ? Number(secondsRaw) : 0
+
+  if ([hours, minutes, seconds].some((part) => Number.isNaN(part))) return null
+  return hours * 3600 + minutes * 60 + seconds
+}
+
+const formatDurationBetweenTimes = (
+  startTime: string,
+  endTime: string,
+  fallbackWorkedHours: number,
+) => {
+  const startSeconds = toTimeInSeconds(startTime)
+  const endSeconds = toTimeInSeconds(endTime)
+
+  if (startSeconds === null || endSeconds === null || endSeconds <= startSeconds) {
+    return formatWorkedTime(fallbackWorkedHours)
+  }
+
+  const totalSeconds = endSeconds - startSeconds
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  if (hours > 0) {
+    if (minutes > 0 && seconds > 0) return `${hours}h ${minutes}m ${seconds}s`
+    if (minutes > 0) return `${hours}h ${minutes}m`
+    if (seconds > 0) return `${hours}h ${seconds}s`
+    return `${hours}h`
+  }
+  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
+  return `${seconds}s`
+}
+
+const formatHoursAndMinutes = (workedHours: number) => {
+  const totalMinutes = Math.max(0, Math.round(workedHours * 60))
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = totalMinutes % 60
+
+  if (hours === 0) return `${minutes}m`
+  return `${hours}h ${minutes}m`
+}
+
+const formatWorkDate = (workDate: string) => {
+  const parts = workDate.split('-')
+  if (parts.length !== 3) return workDate
+
+  const [year, month, day] = parts
+  if (!year || !month || !day) return workDate
+
+  return `${day}/${month}/${year.slice(-2)}`
+}
+
+const formatClockTime = (value: string) => {
+  const parts = value.split(':')
+  if (parts.length < 2) return value
+
+  const [hours, minutes, seconds] = parts
+  if (!hours || !minutes) return value
+
+  if (!seconds || seconds === '00') {
+    return `${hours}:${minutes}`
+  }
+
+  return `${hours}:${minutes}:${seconds}`
+}
 
 type RegisterMiniBoardProps = {
   totalWeekHours: number
   totalWeekAmountCents: number
   entries: RegisterEntry[]
   error: string | null
+  activeEntryId: string | null
+  activeEntryElapsedLabel: string | null
   onEditEntry: (entry: RegisterEntry) => void
   onDeleteEntry: (id: string) => Promise<void>
 }
@@ -16,6 +105,8 @@ export const RegisterMiniBoard = ({
   totalWeekAmountCents,
   entries,
   error,
+  activeEntryId,
+  activeEntryElapsedLabel,
   onEditEntry,
   onDeleteEntry,
 }: RegisterMiniBoardProps) => (
@@ -24,8 +115,12 @@ export const RegisterMiniBoard = ({
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Horas (7 dias)</p>
-            <p className="mt-1 text-xl font-semibold">{totalWeekHours.toFixed(2)}h</p>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">
+              Horas (7 dias)
+            </p>
+            <p className="mt-1 text-xl font-semibold">
+              {formatHoursAndMinutes(totalWeekHours)}
+            </p>
           </div>
           <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-zinc-500" aria-hidden />
         </div>
@@ -33,8 +128,12 @@ export const RegisterMiniBoard = ({
       <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-zinc-400">Valor (7 dias)</p>
-            <p className="mt-1 text-xl font-semibold">{formatBRL(totalWeekAmountCents)}</p>
+            <p className="text-xs uppercase tracking-wide text-zinc-400">
+              Valor (7 dias)
+            </p>
+            <p className="mt-1 text-xl font-semibold">
+              {formatBRL(totalWeekAmountCents)}
+            </p>
           </div>
           <Wallet className="mt-0.5 h-5 w-5 shrink-0 text-zinc-500" aria-hidden />
         </div>
@@ -68,18 +167,30 @@ export const RegisterMiniBoard = ({
 
       <ul className="max-h-[460px] overflow-auto">
         {entries.length === 0 ? (
-          <li className="px-3 py-6 text-sm text-zinc-400">Nenhum registro ainda.</li>
+          <li className="px-3 py-6 text-center text-sm text-zinc-400">
+            Nenhum registro ainda.
+          </li>
         ) : (
           entries.map((entry) => (
             <li
               key={entry.id}
               className="grid grid-cols-[120px_160px_100px_1fr_120px_120px] items-center gap-2 border-b border-zinc-900 px-3 py-2 text-sm last:border-none"
             >
-              <span className="text-zinc-300">{entry.work_date}</span>
+              <span className="text-zinc-300">{formatWorkDate(entry.work_date)}</span>
               <span className="text-zinc-300">
-                {entry.start_time} - {entry.end_time}
+                {entry.id === activeEntryId
+                  ? `${formatClockTime(entry.start_time)} - Em execucao`
+                  : `${formatClockTime(entry.start_time)} - ${formatClockTime(entry.end_time)}`}
               </span>
-              <span className="font-medium">{entry.worked_hours.toFixed(2)}h</span>
+              <span className="font-medium">
+                {entry.id === activeEntryId && activeEntryElapsedLabel
+                  ? activeEntryElapsedLabel
+                  : formatDurationBetweenTimes(
+                      entry.start_time,
+                      entry.end_time,
+                      entry.worked_hours,
+                    )}
+              </span>
               <div className="min-w-0">
                 <p className="truncate text-zinc-200">{entry.description || '-'}</p>
                 <p className="text-xs text-zinc-500">
@@ -91,16 +202,20 @@ export const RegisterMiniBoard = ({
                 <button
                   type="button"
                   onClick={() => onEditEntry(entry)}
-                  className="cursor-pointer rounded-md border border-zinc-700 px-2 py-1 text-xs text-zinc-200 hover:bg-zinc-800"
+                  aria-label="Editar registro"
+                  title="Editar registro"
+                  className="cursor-pointer rounded-md border border-zinc-700 p-1.5 text-zinc-200 hover:bg-zinc-800"
                 >
-                  Editar
+                  <Pencil className="h-3.5 w-3.5" aria-hidden />
                 </button>
                 <button
                   type="button"
                   onClick={() => void onDeleteEntry(entry.id)}
-                  className="cursor-pointer rounded-md border border-red-700 px-2 py-1 text-xs text-red-200 hover:bg-red-950/30"
+                  aria-label="Excluir registro"
+                  title="Excluir registro"
+                  className="cursor-pointer rounded-md border border-red-700 p-1.5 text-red-200 hover:bg-red-950/30"
                 >
-                  Excluir
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden />
                 </button>
               </div>
             </li>

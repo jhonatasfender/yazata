@@ -46,6 +46,30 @@ export const useTimeEntriesActions = ({
     [employeeId, hourlyRateCents, mode, reloadEntries, repository, setError, setLoading],
   )
 
+  const createEntryAndGetId = useCallback(
+    async (payload: CreateTimeEntryInput) => {
+      if (mode !== 'employee' || !employeeId) return null
+
+      setError(null)
+      setLoading(true)
+
+      try {
+        const entryId = await repository.createForEmployee({
+          employeeId,
+          input: payload,
+          hourlyRateCents,
+        })
+        await reloadEntries()
+        return entryId
+      } catch (timeError) {
+        setError((timeError as Error).message)
+        setLoading(false)
+        return null
+      }
+    },
+    [employeeId, hourlyRateCents, mode, reloadEntries, repository, setError, setLoading],
+  )
+
   const updateEntry = useCallback(
     async (id: string, payload: UpdateTimeEntryInput) => {
       if (mode !== 'employee' || !employeeId) return false
@@ -98,6 +122,7 @@ export const useTimeEntriesActions = ({
 
   return {
     createEntry,
+    createEntryAndGetId,
     updateEntry,
     deleteEntry,
   }
