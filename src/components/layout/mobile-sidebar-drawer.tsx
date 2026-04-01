@@ -47,9 +47,7 @@ export const MobileSidebarDrawer = ({
         >
           <div className="mb-4 flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-zinc-400">
-                Yazata
-              </p>
+              <p className="text-xs uppercase tracking-wide text-zinc-400">Yazata</p>
               <h1 className="text-lg font-semibold">Navegacao</h1>
             </div>
             <button

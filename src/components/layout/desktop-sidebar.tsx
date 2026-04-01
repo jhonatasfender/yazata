@@ -49,9 +49,7 @@ export const DesktopSidebar = ({
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.18 }}
             >
-              <p className="text-xs uppercase tracking-wide text-zinc-400">
-                Yazata
-              </p>
+              <p className="text-xs uppercase tracking-wide text-zinc-400">Yazata</p>
               <h1 className="text-base font-semibold">Registro da equipe</h1>
             </motion.div>
           ) : null}
