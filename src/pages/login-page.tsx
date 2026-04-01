@@ -18,9 +18,7 @@ export const LoginPage = () => {
         className="relative mx-auto flex w-full max-w-5xl flex-col items-center gap-8"
       >
         <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.2em] text-violet-300">
-            Tracker de Horas
-          </p>
+          <p className="text-sm uppercase tracking-[0.2em] text-violet-300">Yazata</p>
           <h1 className="mt-3 text-3xl font-semibold md:text-4xl">Acesso da equipe</h1>
           <p className="mt-3 max-w-xl text-zinc-300">
             Faça login para registrar jornada, acompanhar horas e manter o histórico

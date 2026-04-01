@@ -52,43 +52,43 @@ export const RegisterEntryFormCard = ({
 
     <Form<TimeEntryFormValues>
       key={`${editingEntry?.id ?? 'new'}-${formVersion}`}
-      className="mt-4 grid gap-3 md:grid-cols-12 md:items-end"
+      className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-12 lg:items-end"
       schema={timeEntrySchema}
       defaultValues={defaultValues}
       onSubmit={onSubmit}
     >
-      <div className="md:col-span-2">
+      <div className="lg:col-span-2">
         <Input type="date" name="workDate" label="Data" />
       </div>
-      <div className="md:col-span-2">
+      <div className="lg:col-span-2">
         <Input type="time" name="startTime" label="Início" />
       </div>
-      <div className="md:col-span-2">
+      <div className="lg:col-span-2">
         <Input type="time" name="endTime" label="Fim" />
       </div>
-      <div className="md:col-span-3">
+      <div className="sm:col-span-2 lg:col-span-4">
         <Select name="projectId" label="Projeto" options={projectOptions} />
       </div>
-      <div className="md:col-span-2">
-        <Textarea
-          rows={1}
-          name="description"
-          label="Descrição"
-          placeholder="No que você trabalhou?"
-          className="min-h-[42px] resize-y"
-        />
-      </div>
-      <div className="md:col-span-1">
+      <div className="sm:col-span-2 lg:col-span-2">
         <SubmitButton
-          className="h-[42px]"
+          className="h-[42px] w-full whitespace-nowrap"
           loadingText={loading ? 'Salvando...' : undefined}
         >
           {editingEntry ? 'Salvar' : 'Adicionar'}
         </SubmitButton>
       </div>
+      <div className="sm:col-span-2 lg:col-span-12">
+        <Textarea
+          rows={2}
+          name="description"
+          label="Descrição"
+          placeholder="No que você trabalhou?"
+          className="min-h-[96px] resize-y"
+        />
+      </div>
 
       {editingEntry ? (
-        <div className="md:col-span-12">
+        <div className="sm:col-span-2 lg:col-span-12">
           <button
             type="button"
             onClick={() => {

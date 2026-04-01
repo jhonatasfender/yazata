@@ -104,9 +104,7 @@ export const ForgotPasswordPage = () => {
         transition={{ duration: 0.45, ease: 'easeOut' }}
         className="relative mx-auto w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900/70 p-6"
       >
-        <p className="text-sm uppercase tracking-[0.2em] text-violet-300">
-          Tracker de Horas
-        </p>
+        <p className="text-sm uppercase tracking-[0.2em] text-violet-300">Yazata</p>
         <h1 className="mt-3 text-2xl font-semibold">Recuperar senha</h1>
         <p className="mt-2 text-sm text-zinc-300">
           {step === 'request'

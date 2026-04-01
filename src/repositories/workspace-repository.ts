@@ -24,7 +24,7 @@ export class WorkspaceRepository {
         status: 'active',
       })
       .is('employee_clerk_user_id', null)
-      .eq('employee_email', params.email)
+      .ilike('employee_email', params.email)
 
     if (error) throw new Error(error.message)
   }
