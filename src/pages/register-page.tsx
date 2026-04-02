@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Navigate, useOutletContext } from 'react-router-dom'
+import { Link, useOutletContext } from 'react-router-dom'
 import type { AppLayoutContext } from '../components/app-layout'
 import { useProjects } from '../hooks/use-projects'
 import { useTimeEntries } from '../hooks/use-time-entries'
+import { confirmDialog } from '../lib/dialog'
 import type { TimeEntryFormValues } from '../schemas/time-entry-schema'
 import { today } from '../utils/time'
 import { RegisterEntryFormCard } from './register/register-entry-form-card'
@@ -44,7 +45,8 @@ const formatElapsedTime = (elapsedMs: number) => {
 }
 
 export const RegisterPage = () => {
-  const { manager, employee } = useOutletContext<AppLayoutContext>()
+  const { manager, employee, activeWorkspaceContext } =
+    useOutletContext<AppLayoutContext>()
   const [formVersion, setFormVersion] = useState(0)
   const [editingEntry, setEditingEntry] = useState<EditingEntry | null>(null)
   const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
@@ -63,12 +65,12 @@ export const RegisterPage = () => {
   } = useTimeEntries({
     enabled: Boolean(employee),
     mode: 'employee',
-    employeeId: employee?.id,
+    employmentContractId: employee?.id,
     hourlyRateCents: employee?.hourly_rate_cents ?? 0,
   })
   const { projects } = useProjects({
     enabled: Boolean(employee),
-    employeeId: employee?.id,
+    employmentContractId: employee?.id,
   })
 
   useEffect(() => {
@@ -155,7 +157,11 @@ export const RegisterPage = () => {
   }
 
   const onDeleteEntry = async (id: string) => {
-    const confirmed = window.confirm('Deseja realmente excluir este registro?')
+    const confirmed = await confirmDialog({
+      title: 'Excluir registro',
+      text: 'Deseja realmente excluir este registro?',
+      confirmButtonText: 'Excluir',
+    })
     if (!confirmed) return
     await deleteEntry(id)
   }
@@ -168,7 +174,6 @@ export const RegisterPage = () => {
     const startTime = toLocalTime(startDate, true)
     const oneSecondAfterStart = new Date(startDate.getTime() + 1_000)
 
-    // Start visual timer immediately on click, independent of network latency.
     setQuickEntryStartedAt(startedAtIso)
 
     const entryId = await createEntryAndGetId({
@@ -222,9 +227,35 @@ export const RegisterPage = () => {
     }
   }
 
+  if (employee && activeWorkspaceContext === 'manager') {
+    return (
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+        <h2 className="text-lg font-semibold">Employee workspace required</h2>
+        <p className="mt-2 text-zinc-300">
+          You are in <span className="font-medium text-zinc-100">Manager</span> workspace.
+          Use the header to switch to{' '}
+          <span className="font-medium text-zinc-100">Employee</span> to register time.
+        </p>
+      </section>
+    )
+  }
+
   if (!employee) {
     if (manager) {
-      return <Navigate to="/equipe" replace />
+      return (
+        <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-5">
+          <h2 className="text-lg font-semibold">No employee contract</h2>
+          <p className="mt-2 text-zinc-300">
+            You are not linked as an employee. You can still manage people from Employees.
+          </p>
+          <Link
+            to="/employees"
+            className="mt-4 inline-flex rounded-lg border border-zinc-700 bg-zinc-950 px-4 py-2 text-sm font-medium text-zinc-100 hover:border-zinc-500"
+          >
+            Go to Employees
+          </Link>
+        </section>
+      )
     }
 
     return <RegisterUnlinkedState />

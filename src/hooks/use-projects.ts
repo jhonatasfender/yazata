@@ -5,22 +5,26 @@ import { ProjectsRepository } from '../repositories/projects-repository'
 
 type UseProjectsOptions = {
   enabled: boolean
-  managerId?: string
-  employeeId?: string
+  companyId?: string
+  employmentContractId?: string
 }
 
 type CreateProjectInput = {
+  companyId: string
+  createdByContractId?: string
   name: string
-  managerId: string
-  createdByEmployeeId?: string
 }
 
 type ToggleProjectInput = {
   id: string
-  managerId: string
+  companyId: string
 }
 
-export const useProjects = ({ enabled, managerId, employeeId }: UseProjectsOptions) => {
+export const useProjects = ({
+  enabled,
+  companyId,
+  employmentContractId,
+}: UseProjectsOptions) => {
   const { getToken } = useAuth()
   const [projects, setProjects] = useState<ProjectRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -35,9 +39,9 @@ export const useProjects = ({ enabled, managerId, employeeId }: UseProjectsOptio
     setError(null)
 
     try {
-      const rows = managerId
-        ? await repository.listByManager(managerId)
-        : await repository.listByEmployee(employeeId ?? '')
+      const rows = companyId
+        ? await repository.listByCompany(companyId)
+        : await repository.listByEmploymentContract(employmentContractId ?? '')
 
       setProjects(rows)
       setLoading(false)
@@ -45,7 +49,7 @@ export const useProjects = ({ enabled, managerId, employeeId }: UseProjectsOptio
       setError((queryError as Error).message)
       setLoading(false)
     }
-  }, [employeeId, enabled, managerId, repository])
+  }, [companyId, enabled, employmentContractId, repository])
 
   const createProject = useCallback(
     async (input: CreateProjectInput) => {
@@ -60,9 +64,9 @@ export const useProjects = ({ enabled, managerId, employeeId }: UseProjectsOptio
 
       try {
         await repository.create({
-          managerId: input.managerId,
+          companyId: input.companyId,
           name: normalizedName,
-          createdByEmployeeId: input.createdByEmployeeId,
+          createdByContractId: input.createdByContractId,
         })
       } catch (creationError) {
         setError((creationError as Error).message)

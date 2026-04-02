@@ -7,8 +7,8 @@ import type {
 type UseTimeEntriesQueryOptions = {
   enabled: boolean
   mode: 'employee' | 'manager'
-  employeeId?: string
-  managerId?: string
+  employmentContractId?: string
+  managerProfileId?: string
   repository: TimeEntriesRepository
   setEntries: (entries: TimeEntryViewRow[]) => void
   setLoading: (loading: boolean) => void
@@ -18,8 +18,8 @@ type UseTimeEntriesQueryOptions = {
 export const useTimeEntriesQuery = ({
   enabled,
   mode,
-  employeeId,
-  managerId,
+  employmentContractId,
+  managerProfileId,
   repository,
   setEntries,
   setLoading,
@@ -34,8 +34,8 @@ export const useTimeEntriesQuery = ({
     try {
       const rows =
         mode === 'manager'
-          ? await repository.listByManager(managerId ?? '')
-          : await repository.listByEmployee(employeeId ?? '')
+          ? await repository.listByManagerProfile(managerProfileId ?? '')
+          : await repository.listByEmploymentContract(employmentContractId ?? '')
 
       setEntries(rows)
       setLoading(false)
@@ -43,4 +43,13 @@ export const useTimeEntriesQuery = ({
       setError((queryError as Error).message)
       setLoading(false)
     }
-  }, [employeeId, enabled, managerId, mode, repository, setEntries, setError, setLoading])
+  }, [
+    employmentContractId,
+    enabled,
+    managerProfileId,
+    mode,
+    repository,
+    setEntries,
+    setError,
+    setLoading,
+  ])

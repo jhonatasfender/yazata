@@ -1,6 +1,11 @@
 import { useAuth } from '@clerk/react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { createClerkSupabaseClient, type EmployeeRow } from '../lib/supabase'
+import { createClerkSupabaseClient } from '../lib/supabase'
+import {
+  EmployeesRepository,
+  type ManagedEmployee,
+  type TerminateEmployeeResult,
+} from '../repositories/employees-repository'
 
 type UseEmployeesOptions = {
   enabled: boolean
@@ -14,32 +19,26 @@ type InviteEmployeeInput = {
 
 export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
   const { getToken } = useAuth()
-  const [employees, setEmployees] = useState<EmployeeRow[]>([])
+  const [employees, setEmployees] = useState<ManagedEmployee[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const supabase = useMemo(() => createClerkSupabaseClient(getToken), [getToken])
+  const repository = useMemo(() => new EmployeesRepository(supabase), [supabase])
 
   const loadEmployees = useCallback(async () => {
     if (!enabled || !managerId) return
 
     setLoading(true)
     setError(null)
-
-    const { data, error: queryError } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('manager_id', managerId)
-      .order('created_at', { ascending: false })
-
-    if (queryError) {
-      setError(queryError.message)
+    try {
+      const employeeRows = await repository.listByManager(managerId)
+      setEmployees(employeeRows)
       setLoading(false)
-      return
+    } catch (loadError) {
+      setError((loadError as Error).message)
+      setLoading(false)
     }
-
-    setEmployees((data ?? []) as EmployeeRow[])
-    setLoading(false)
-  }, [enabled, managerId, supabase])
+  }, [enabled, managerId, repository])
 
   const inviteEmployee = useCallback(
     async ({ email, hourlyRateCents }: InviteEmployeeInput) => {
@@ -54,57 +53,63 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
 
       setError(null)
       setLoading(true)
-
-      const { error: insertError } = await supabase.from('employees').upsert(
-        {
-          manager_id: managerId,
-          employee_email: normalizedEmail,
-          employee_clerk_user_id: null,
-          hourly_rate_cents: hourlyRateCents,
-          status: 'pending',
-        },
-        {
-          onConflict: 'manager_id,employee_email',
-        },
-      )
-
-      if (insertError) {
-        setError(insertError.message)
+      try {
+        await repository.invite({
+          managerProfileId: managerId,
+          email: normalizedEmail,
+          hourlyRateCents,
+        })
+        await loadEmployees()
+        return true
+      } catch (inviteError) {
+        setError((inviteError as Error).message)
         setLoading(false)
         return false
       }
-
-      await loadEmployees()
-      return true
     },
-    [loadEmployees, managerId, supabase],
+    [loadEmployees, managerId, repository],
   )
 
   const updateHourlyRate = useCallback(
-    async (employeeId: string, hourlyRateCents: number) => {
+    async (contractId: string, hourlyRateCents: number) => {
       if (!managerId) return false
 
       setError(null)
       setLoading(true)
-
-      const { error: updateError } = await supabase
-        .from('employees')
-        .update({
-          hourly_rate_cents: hourlyRateCents,
+      try {
+        await repository.updateHourlyRate({
+          contractId,
+          managerProfileId: managerId,
+          hourlyRateCents,
         })
-        .eq('id', employeeId)
-        .eq('manager_id', managerId)
-
-      if (updateError) {
-        setError(updateError.message)
+        await loadEmployees()
+        return true
+      } catch (updateError) {
+        setError((updateError as Error).message)
         setLoading(false)
         return false
       }
-
-      await loadEmployees()
-      return true
     },
-    [loadEmployees, managerId, supabase],
+    [loadEmployees, managerId, repository],
+  )
+
+  const terminateEmployee = useCallback(
+    async (contractId: string): Promise<TerminateEmployeeResult | null> => {
+      if (!managerId) return null
+
+      setError(null)
+      setLoading(true)
+      try {
+        const result = await repository.terminateEmployee({ contractId })
+        await loadEmployees()
+        return result
+      } catch (terminateError) {
+        setError((terminateError as Error).message)
+        setLoading(false)
+        return null
+      }
+    },
+    [loadEmployees, managerId, repository],
   )
 
   useEffect(() => {
@@ -117,6 +122,7 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
     error,
     inviteEmployee,
     updateHourlyRate,
+    terminateEmployee,
     reloadEmployees: loadEmployees,
   }
 }

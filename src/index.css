@@ -21,6 +21,28 @@ body {
     sans-serif;
 }
 
+.account-profile-fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.account-profile-fill .cl-rootBox,
+.account-profile-fill .cl-userProfile-root {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
 .account-profile-fill .cl-userProfile-root,
 .account-profile-fill .cl-cardBox,
 .account-profile-fill .cl-scrollBox,
@@ -28,4 +50,26 @@ body {
 .account-profile-fill .cl-card {
   width: 100% !important;
   max-width: none !important;
+}
+
+.account-profile-fill .cl-cardBox {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.account-profile-fill .cl-scrollBox {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.account-profile-fill .cl-pageScrollBox {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
 }

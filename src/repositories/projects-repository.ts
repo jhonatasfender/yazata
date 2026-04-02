@@ -9,11 +9,11 @@ export class ProjectsRepository {
     this.client = client
   }
 
-  async listByManager(managerId: string): Promise<ProjectRow[]> {
+  async listByCompany(companyId: string): Promise<ProjectRow[]> {
     const { data, error } = await this.client
       .from('projects')
       .select('*')
-      .eq('manager_id', managerId)
+      .eq('company_id', companyId)
       .order('is_active', { ascending: false })
       .order('name', { ascending: true })
 
@@ -21,50 +21,58 @@ export class ProjectsRepository {
     return (data ?? []) as ProjectRow[]
   }
 
-  async listByEmployee(employeeId: string): Promise<ProjectRow[]> {
+  async listByEmploymentContract(contractId: string): Promise<ProjectRow[]> {
     const { data, error } = await this.client
-      .from('employees')
-      .select('manager_id')
-      .eq('id', employeeId)
+      .from('employment_contracts')
+      .select('manager_profiles!inner(company_id)')
+      .eq('id', contractId)
       .limit(1)
-      .maybeSingle<{ manager_id: string }>()
+      .maybeSingle()
 
     if (error) throw new Error(error.message)
-    if (!data?.manager_id) return []
-    return this.listByManager(data.manager_id)
+    if (!data || typeof data !== 'object') return []
+
+    const row = data as Record<string, unknown>
+    const mp = row.manager_profiles
+    const mpRec =
+      typeof mp === 'object' && mp !== null ? (mp as Record<string, unknown>) : null
+    const companyId = mpRec?.company_id != null ? String(mpRec.company_id) : ''
+    if (!companyId) return []
+
+    return this.listByCompany(companyId)
   }
 
   async create(params: {
-    managerId: string
+    companyId: string
     name: string
-    createdByEmployeeId?: string
+    createdByContractId?: string
   }): Promise<void> {
     const payload = {
-      manager_id: params.managerId,
+      company_id: params.companyId,
       name: params.name,
-      created_by_employee_id: params.createdByEmployeeId ?? null,
+      created_by_contract_id: params.createdByContractId ?? null,
     }
 
     const { error } = await this.client.from('projects').insert(payload)
     if (error) throw new Error(error.message)
   }
 
-  async archive(params: { id: string; managerId: string }): Promise<void> {
+  async archive(params: { id: string; companyId: string }): Promise<void> {
     const { error } = await this.client
       .from('projects')
       .update({ is_active: false })
       .eq('id', params.id)
-      .eq('manager_id', params.managerId)
+      .eq('company_id', params.companyId)
 
     if (error) throw new Error(error.message)
   }
 
-  async unarchive(params: { id: string; managerId: string }): Promise<void> {
+  async unarchive(params: { id: string; companyId: string }): Promise<void> {
     const { error } = await this.client
       .from('projects')
       .update({ is_active: true })
       .eq('id', params.id)
-      .eq('manager_id', params.managerId)
+      .eq('company_id', params.companyId)
 
     if (error) throw new Error(error.message)
   }

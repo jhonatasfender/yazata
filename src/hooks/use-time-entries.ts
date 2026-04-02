@@ -16,8 +16,8 @@ import type { UseTimeEntriesOptions } from './time-entries/types'
 export const useTimeEntries = ({
   enabled,
   mode,
-  employeeId,
-  managerId,
+  employmentContractId,
+  managerProfileId,
   hourlyRateCents = 0,
 }: UseTimeEntriesOptions) => {
   const { getToken } = useAuth()
@@ -33,8 +33,8 @@ export const useTimeEntries = ({
   const loadEntries = useTimeEntriesQuery({
     enabled,
     mode,
-    employeeId,
-    managerId,
+    employmentContractId,
+    managerProfileId,
     repository,
     setEntries: setEntriesState,
     setLoading: setLoadingState,
@@ -44,7 +44,7 @@ export const useTimeEntries = ({
   const { createEntry, createEntryAndGetId, updateEntry, deleteEntry } =
     useTimeEntriesActions({
       mode,
-      employeeId,
+      employmentContractId,
       hourlyRateCents,
       repository,
       reloadEntries: loadEntries,

@@ -20,7 +20,7 @@ export class TimeEntriesRepository {
     this.client = client
   }
 
-  async listByEmployee(employeeId: string): Promise<TimeEntryViewRow[]> {
+  async listByEmploymentContract(contractId: string): Promise<TimeEntryViewRow[]> {
     const { data, error } = await this.client
       .from('time_entries')
       .select(
@@ -33,24 +33,38 @@ export class TimeEntriesRepository {
           )
         `,
       )
-      .eq('employee_id', employeeId)
+      .eq('employment_contract_id', contractId)
       .order('work_date', { ascending: false })
       .order('start_time', { ascending: false })
 
     if (error) throw new Error(error.message)
+
     return this.mapRows(data)
   }
 
-  async listByManager(managerId: string): Promise<TimeEntryViewRow[]> {
+  async listByManagerProfile(managerProfileId: string): Promise<TimeEntryViewRow[]> {
+    const { data: contractsData, error: contractsError } = await this.client
+      .from('employment_contracts')
+      .select('id')
+      .eq('manager_profile_id', managerProfileId)
+
+    if (contractsError) throw new Error(contractsError.message)
+
+    const contractIds = (contractsData ?? [])
+      .map((row) => (this.isRecord(row) ? String(row.id ?? '') : ''))
+      .filter(Boolean)
+
+    if (contractIds.length === 0) return []
+
     const { data, error } = await this.client
       .from('time_entries')
       .select(
         `
           *,
-          employee:employees!inner(
+          employment_contract:employment_contracts!inner(
             id,
             employee_email,
-            manager_id
+            manager_profile_id
           ),
           project:projects(
             id,
@@ -59,16 +73,17 @@ export class TimeEntriesRepository {
           )
         `,
       )
-      .eq('employee.manager_id', managerId)
+      .in('employment_contract_id', contractIds)
       .order('work_date', { ascending: false })
       .order('start_time', { ascending: false })
 
     if (error) throw new Error(error.message)
+
     return this.mapRows(data)
   }
 
   async createForEmployee(params: {
-    employeeId: string
+    employmentContractId: string
     input: TimeEntryMutationInput
     hourlyRateCents: number
   }): Promise<string> {
@@ -77,7 +92,7 @@ export class TimeEntriesRepository {
     const { data, error } = await this.client
       .from('time_entries')
       .insert({
-        employee_id: params.employeeId,
+        employment_contract_id: params.employmentContractId,
         ...payload,
       })
       .select('id')
@@ -89,7 +104,7 @@ export class TimeEntriesRepository {
 
   async updateForEmployee(params: {
     id: string
-    employeeId: string
+    employmentContractId: string
     input: TimeEntryMutationInput
     hourlyRateCents: number
   }): Promise<void> {
@@ -99,17 +114,20 @@ export class TimeEntriesRepository {
       .from('time_entries')
       .update(payload)
       .eq('id', params.id)
-      .eq('employee_id', params.employeeId)
+      .eq('employment_contract_id', params.employmentContractId)
 
     if (error) throw new Error(error.message)
   }
 
-  async deleteForEmployee(params: { id: string; employeeId: string }): Promise<void> {
+  async deleteForEmployee(params: {
+    id: string
+    employmentContractId: string
+  }): Promise<void> {
     const { error } = await this.client
       .from('time_entries')
       .delete()
       .eq('id', params.id)
-      .eq('employee_id', params.employeeId)
+      .eq('employment_contract_id', params.employmentContractId)
 
     if (error) throw new Error(error.message)
   }
@@ -120,14 +138,18 @@ export class TimeEntriesRepository {
     return data.map((row) => {
       const raw = this.isRecord(row) ? row : {}
 
-      const employeeRaw = this.isRecord(raw.employee) ? raw.employee : undefined
+      const ecRaw = this.isRecord(raw.employment_contract)
+        ? raw.employment_contract
+        : undefined
       const projectRaw = this.isRecord(raw.project) ? raw.project : undefined
-      const employee: TimeEntryEmployeeRef | undefined = employeeRaw
+
+      const employee: TimeEntryEmployeeRef | undefined = ecRaw
         ? {
-            id: String(employeeRaw.id ?? ''),
-            employee_email: String(employeeRaw.employee_email ?? ''),
+            id: String(ecRaw.id ?? ''),
+            employee_email: String(ecRaw.employee_email ?? ''),
           }
         : undefined
+
       const project: TimeEntryProjectRef | undefined = projectRaw
         ? {
             id: String(projectRaw.id ?? ''),
@@ -138,7 +160,7 @@ export class TimeEntriesRepository {
 
       return {
         id: String(raw.id ?? ''),
-        employee_id: String(raw.employee_id ?? ''),
+        employment_contract_id: String(raw.employment_contract_id ?? ''),
         project_id:
           raw.project_id === null || raw.project_id === undefined
             ? null

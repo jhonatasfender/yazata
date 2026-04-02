@@ -7,24 +7,49 @@ import {
 } from '../lib/supabase'
 import { WorkspaceRepository } from '../repositories/workspace-repository'
 
+const SELECTED_MANAGER_PROFILE_KEY = 'tracker.selected-manager-profile-id'
+const ACTIVE_WORKSPACE_CONTEXT_KEY = 'tracker.active-workspace-context'
+
+export type ActiveWorkspaceContext = 'employee' | 'manager'
+
 type WorkspaceContextState = {
   loading: boolean
   error: string | null
   manager: ManagerRow | null
+  managers: ManagerRow[]
+  selectedManagerProfileId: string | null
+  setSelectedManagerProfileId: (id: string) => void
   employee: EmployeeRow | null
+  activeWorkspaceContext: ActiveWorkspaceContext
+  setActiveWorkspaceContext: (context: ActiveWorkspaceContext) => void
   refresh: () => Promise<void>
 }
 
 export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => {
   const { getToken } = useAuth()
-  const { user } = useUser()
+  const { user, isLoaded: userLoaded } = useUser()
   const supabase = useMemo(() => createClerkSupabaseClient(getToken), [getToken])
   const repository = useMemo(() => new WorkspaceRepository(supabase), [supabase])
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => Boolean(enabled))
   const [error, setError] = useState<string | null>(null)
-  const [manager, setManager] = useState<ManagerRow | null>(null)
+  const [managers, setManagers] = useState<ManagerRow[]>([])
+  const [selectedManagerProfileId, setSelectedManagerProfileIdState] = useState<
+    string | null
+  >(null)
   const [employee, setEmployee] = useState<EmployeeRow | null>(null)
+  const [activeWorkspaceContext, setActiveWorkspaceContextState] =
+    useState<ActiveWorkspaceContext>('employee')
+
+  const setSelectedManagerProfileId = useCallback((id: string) => {
+    setSelectedManagerProfileIdState(id)
+    window.localStorage.setItem(SELECTED_MANAGER_PROFILE_KEY, id)
+  }, [])
+
+  const setActiveWorkspaceContext = useCallback((context: ActiveWorkspaceContext) => {
+    setActiveWorkspaceContextState(context)
+    window.localStorage.setItem(ACTIVE_WORKSPACE_CONTEXT_KEY, context)
+  }, [])
 
   const refresh = useCallback(async () => {
     if (!enabled || !user) return
@@ -56,7 +81,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
                 : null
           }
         } catch {
-          // Ignore invalid token payload parse.
+          void 0
         }
       }
 
@@ -73,6 +98,11 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
         ),
       )
 
+      await repository.ensureUserRow({
+        clerkUserId,
+        primaryEmail: normalizedEmail,
+      })
+
       for (const candidateEmail of candidateEmails) {
         const claimedRows = await repository.claimEmployeeInvite({
           clerkUserId,
@@ -83,21 +113,42 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
       }
 
       const employeeData = await repository.findEmployeeByClerkUserId(clerkUserId)
-      const managerData = await repository.findManagerByClerkUserId(clerkUserId)
+      const managersList = await repository.listManagerProfilesByClerkUserId(clerkUserId)
 
-      let managedEmployeesCount = 0
-      if (managerData) {
-        managedEmployeesCount = await repository.countManagedEmployees(managerData.id)
+      setManagers(managersList)
+      setEmployee(employeeData)
+
+      const storedId = window.localStorage.getItem(SELECTED_MANAGER_PROFILE_KEY)
+      const storedValid =
+        storedId && managersList.some((entry) => entry.id === storedId) ? storedId : null
+      const nextSelected = storedValid ?? managersList[0]?.id ?? null
+
+      if (nextSelected) {
+        window.localStorage.setItem(SELECTED_MANAGER_PROFILE_KEY, nextSelected)
+        setSelectedManagerProfileIdState(nextSelected)
+      } else {
+        window.localStorage.removeItem(SELECTED_MANAGER_PROFILE_KEY)
+        setSelectedManagerProfileIdState(null)
       }
 
-      const isActiveManager =
-        Boolean(managerData) &&
-        (managedEmployeesCount > 0 || Boolean(managerData?.company_name))
+      const storedContext = window.localStorage.getItem(ACTIVE_WORKSPACE_CONTEXT_KEY)
+      let nextContext: ActiveWorkspaceContext = 'employee'
 
-      const managerToApply = isActiveManager ? managerData : null
+      if (!employeeData && managersList.length > 0) {
+        nextContext = 'manager'
+      } else if (employeeData && managersList.length === 0) {
+        nextContext = 'employee'
+      } else if (employeeData && managersList.length > 0) {
+        if (storedContext === 'manager' || storedContext === 'employee') {
+          nextContext = storedContext
+        } else {
+          nextContext = 'employee'
+        }
+      }
 
-      setManager(managerToApply)
-      setEmployee(employeeData)
+      window.localStorage.setItem(ACTIVE_WORKSPACE_CONTEXT_KEY, nextContext)
+      setActiveWorkspaceContextState(nextContext)
+
       setLoading(false)
     } catch (loadError) {
       setError((loadError as Error).message)
@@ -106,14 +157,48 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
   }, [enabled, getToken, repository, user])
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false)
+      setManagers([])
+      setSelectedManagerProfileIdState(null)
+      setEmployee(null)
+      setActiveWorkspaceContextState('employee')
+      return
+    }
+
+    if (!userLoaded) {
+      setLoading(true)
+      return
+    }
+
+    if (!user) {
+      setLoading(false)
+      setManagers([])
+      setSelectedManagerProfileIdState(null)
+      setEmployee(null)
+      setActiveWorkspaceContextState('employee')
+      return
+    }
+
     void refresh()
-  }, [refresh])
+  }, [enabled, refresh, user, userLoaded])
+
+  const manager = useMemo(() => {
+    if (managers.length === 0) return null
+    const id = selectedManagerProfileId ?? managers[0].id
+    return managers.find((entry) => entry.id === id) ?? managers[0]
+  }, [managers, selectedManagerProfileId])
 
   return {
     loading,
     error,
     manager,
+    managers,
+    selectedManagerProfileId,
+    setSelectedManagerProfileId,
     employee,
+    activeWorkspaceContext,
+    setActiveWorkspaceContext,
     refresh,
   }
 }

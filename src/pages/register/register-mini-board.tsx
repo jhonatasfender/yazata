@@ -1,79 +1,11 @@
 import { Clock3, FileText, Pencil, Trash2, Wallet } from 'lucide-react'
 import { formatBRL } from '../../utils/money'
+import {
+  formatDurationBetweenTimes,
+  formatHoursAndMinutes,
+  formatWorkDate,
+} from '../../utils/time'
 import type { RegisterEntry } from './register-types'
-
-const formatWorkedTime = (workedHours: number) => {
-  const totalSeconds = Math.max(0, Math.round(workedHours * 3600))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    if (minutes > 0) return `${hours}h ${minutes}m`
-    return `${hours}h`
-  }
-  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-  return `${seconds}s`
-}
-
-const toTimeInSeconds = (value: string) => {
-  const parts = value.split(':')
-  if (parts.length < 2 || parts.length > 3) return null
-
-  const [hoursRaw, minutesRaw, secondsRaw] = parts
-  const hours = Number(hoursRaw)
-  const minutes = Number(minutesRaw)
-  const seconds = secondsRaw ? Number(secondsRaw) : 0
-
-  if ([hours, minutes, seconds].some((part) => Number.isNaN(part))) return null
-  return hours * 3600 + minutes * 60 + seconds
-}
-
-const formatDurationBetweenTimes = (
-  startTime: string,
-  endTime: string,
-  fallbackWorkedHours: number,
-) => {
-  const startSeconds = toTimeInSeconds(startTime)
-  const endSeconds = toTimeInSeconds(endTime)
-
-  if (startSeconds === null || endSeconds === null || endSeconds <= startSeconds) {
-    return formatWorkedTime(fallbackWorkedHours)
-  }
-
-  const totalSeconds = endSeconds - startSeconds
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    if (minutes > 0 && seconds > 0) return `${hours}h ${minutes}m ${seconds}s`
-    if (minutes > 0) return `${hours}h ${minutes}m`
-    if (seconds > 0) return `${hours}h ${seconds}s`
-    return `${hours}h`
-  }
-  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-  return `${seconds}s`
-}
-
-const formatHoursAndMinutes = (workedHours: number) => {
-  const totalMinutes = Math.max(0, Math.round(workedHours * 60))
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-
-  if (hours === 0) return `${minutes}m`
-  return `${hours}h ${minutes}m`
-}
-
-const formatWorkDate = (workDate: string) => {
-  const parts = workDate.split('-')
-  if (parts.length !== 3) return workDate
-
-  const [year, month, day] = parts
-  if (!year || !month || !day) return workDate
-
-  return `${day}/${month}/${year.slice(-2)}`
-}
 
 const formatClockTime = (value: string) => {
   const parts = value.split(':')

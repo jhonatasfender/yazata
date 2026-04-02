@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion'
+import type { ReactNode } from 'react'
 import type { NavItem } from './nav-items'
 import { SidebarNavLink } from './sidebar-nav-link'
 
@@ -20,19 +21,21 @@ type MobileSidebarDrawerProps = {
   isOpen: boolean
   onClose: () => void
   navItems: NavItem[]
+  workspaceControls?: ReactNode
 }
 
 export const MobileSidebarDrawer = ({
   isOpen,
   onClose,
   navItems,
+  workspaceControls,
 }: MobileSidebarDrawerProps) => {
   return (
     <AnimatePresence>
       {isOpen ? (
         <>
           <motion.button
-            aria-label="Fechar menu lateral"
+            aria-label="Close menu"
             className="fixed inset-0 z-30 bg-zinc-950/70 md:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -49,17 +52,18 @@ export const MobileSidebarDrawer = ({
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wide text-zinc-400">Yazata</p>
-                <h1 className="text-lg font-semibold">Navegacao</h1>
+                <h1 className="text-lg font-semibold">Navigation</h1>
               </div>
               <button
                 type="button"
-                aria-label="Fechar menu"
+                aria-label="Close menu"
                 className="rounded-lg border border-zinc-700 px-2 py-1 text-sm text-zinc-300 hover:bg-zinc-800"
                 onClick={onClose}
               >
                 x
               </button>
             </div>
+            {workspaceControls}
             <nav className="space-y-2">
               {navItems.map((item) => (
                 <SidebarNavLink

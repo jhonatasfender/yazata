@@ -1,9 +1,24 @@
 import { UserButton } from '@clerk/react'
 import { useEffect, useMemo, useState } from 'react'
 
+import {
+  WorkspaceContextControls,
+  type WorkspaceManagerOption,
+} from './workspace-context-controls'
+import type { ActiveWorkspaceContext } from '../../hooks/use-workspace-context'
+
+export type ManagerOption = WorkspaceManagerOption
+
 type AppTopbarProps = {
   onOpenMenu: () => void
   currentEmployeeId: string | null
+  managerOptions: ManagerOption[]
+  selectedManagerProfileId: string | null
+  onSelectManagerProfile: (id: string) => void
+  hasEmployeeRole: boolean
+  hasManagerRole: boolean
+  activeWorkspaceContext: ActiveWorkspaceContext
+  onSelectWorkspaceContext: (context: ActiveWorkspaceContext) => void
 }
 
 const QUICK_ENTRY_STORAGE_KEY = 'tracker.quick-entry'
@@ -16,7 +31,17 @@ const formatElapsedTime = (elapsedMs: number) => {
   return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
-export const AppTopbar = ({ onOpenMenu, currentEmployeeId }: AppTopbarProps) => {
+export const AppTopbar = ({
+  onOpenMenu,
+  currentEmployeeId,
+  managerOptions,
+  selectedManagerProfileId,
+  onSelectManagerProfile,
+  hasEmployeeRole,
+  hasManagerRole,
+  activeWorkspaceContext,
+  onSelectWorkspaceContext,
+}: AppTopbarProps) => {
   const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
   const [nowMs, setNowMs] = useState<number | null>(null)
 
@@ -75,7 +100,7 @@ export const AppTopbar = ({ onOpenMenu, currentEmployeeId }: AppTopbarProps) => 
         <div className="flex items-center gap-3">
           <button
             type="button"
-            aria-label="Abrir menu lateral"
+            aria-label="Open menu"
             className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 md:hidden"
             onClick={onOpenMenu}
           >
@@ -83,7 +108,7 @@ export const AppTopbar = ({ onOpenMenu, currentEmployeeId }: AppTopbarProps) => 
           </button>
           <div>
             <p className="text-sm text-zinc-400">Yazata - Faith Tracker</p>
-            <h1 className="text-2xl font-semibold">Registro de jornada da equipe</h1>
+            <h1 className="text-2xl font-semibold">Team time tracking</h1>
           </div>
         </div>
 
@@ -91,7 +116,7 @@ export const AppTopbar = ({ onOpenMenu, currentEmployeeId }: AppTopbarProps) => 
           {elapsedLabel ? (
             <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 shadow-[0_0_25px_rgba(16,185,129,0.18)]">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                Em execucao
+                Running
               </p>
               <p className="font-mono text-3xl font-bold leading-none text-emerald-200">
                 {elapsedLabel}
@@ -101,6 +126,17 @@ export const AppTopbar = ({ onOpenMenu, currentEmployeeId }: AppTopbarProps) => 
           <UserButton userProfileMode="navigation" userProfileUrl="/profile" />
         </div>
       </div>
+
+      <WorkspaceContextControls
+        variant="compact"
+        hasEmployeeRole={hasEmployeeRole}
+        hasManagerRole={hasManagerRole}
+        activeWorkspaceContext={activeWorkspaceContext}
+        onSelectWorkspaceContext={onSelectWorkspaceContext}
+        managerOptions={managerOptions}
+        selectedManagerProfileId={selectedManagerProfileId}
+        onSelectManagerProfile={onSelectManagerProfile}
+      />
     </header>
   )
 }

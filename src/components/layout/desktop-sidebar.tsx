@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { cn } from '../../lib/utils'
 import type { NavItem } from './nav-items'
 import { desktopSidebarVariants } from './sidebar-motion'
@@ -10,6 +11,7 @@ type DesktopSidebarProps = {
   desktopMode: 'expanded' | 'collapsed'
   onToggleExpanded: () => void
   navItems: NavItem[]
+  workspaceControls?: ReactNode
 }
 
 export const DesktopSidebar = ({
@@ -17,6 +19,7 @@ export const DesktopSidebar = ({
   desktopMode,
   onToggleExpanded,
   navItems,
+  workspaceControls,
 }: DesktopSidebarProps) => {
   const navContainerVariants = {
     expanded: { transition: { staggerChildren: 0.05, delayChildren: 0.05 } },
@@ -51,13 +54,13 @@ export const DesktopSidebar = ({
               transition={{ duration: 0.18 }}
             >
               <p className="text-xs uppercase tracking-wide text-zinc-400">Yazata</p>
-              <h1 className="text-base font-semibold">Registro da equipe</h1>
+              <h1 className="text-base font-semibold">Team tracker</h1>
             </motion.div>
           ) : null}
         </AnimatePresence>
         <button
           type="button"
-          aria-label="Expandir ou recolher sidebar"
+          aria-label="Expand or collapse sidebar"
           className={cn(
             'rounded-lg border border-zinc-700 bg-zinc-900 text-zinc-300 transition-colors hover:bg-zinc-800',
             desktopExpanded ? 'px-2 py-1' : 'w-full px-2 py-2',
@@ -73,6 +76,8 @@ export const DesktopSidebar = ({
           </motion.span>
         </button>
       </div>
+
+      {workspaceControls}
 
       <motion.nav
         className="space-y-2"

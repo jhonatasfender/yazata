@@ -4,7 +4,7 @@ import type { CreateTimeEntryInput, UpdateTimeEntryInput } from './types'
 
 type UseTimeEntriesActionsOptions = {
   mode: 'employee' | 'manager'
-  employeeId?: string
+  employmentContractId?: string
   hourlyRateCents: number
   repository: TimeEntriesRepository
   reloadEntries: () => Promise<void>
@@ -14,7 +14,7 @@ type UseTimeEntriesActionsOptions = {
 
 export const useTimeEntriesActions = ({
   mode,
-  employeeId,
+  employmentContractId,
   hourlyRateCents,
   repository,
   reloadEntries,
@@ -23,14 +23,14 @@ export const useTimeEntriesActions = ({
 }: UseTimeEntriesActionsOptions) => {
   const createEntry = useCallback(
     async (payload: CreateTimeEntryInput) => {
-      if (mode !== 'employee' || !employeeId) return false
+      if (mode !== 'employee' || !employmentContractId) return false
 
       setError(null)
       setLoading(true)
 
       try {
         await repository.createForEmployee({
-          employeeId,
+          employmentContractId,
           input: payload,
           hourlyRateCents,
         })
@@ -43,19 +43,27 @@ export const useTimeEntriesActions = ({
       await reloadEntries()
       return true
     },
-    [employeeId, hourlyRateCents, mode, reloadEntries, repository, setError, setLoading],
+    [
+      employmentContractId,
+      hourlyRateCents,
+      mode,
+      reloadEntries,
+      repository,
+      setError,
+      setLoading,
+    ],
   )
 
   const createEntryAndGetId = useCallback(
     async (payload: CreateTimeEntryInput) => {
-      if (mode !== 'employee' || !employeeId) return null
+      if (mode !== 'employee' || !employmentContractId) return null
 
       setError(null)
       setLoading(true)
 
       try {
         const entryId = await repository.createForEmployee({
-          employeeId,
+          employmentContractId,
           input: payload,
           hourlyRateCents,
         })
@@ -67,12 +75,20 @@ export const useTimeEntriesActions = ({
         return null
       }
     },
-    [employeeId, hourlyRateCents, mode, reloadEntries, repository, setError, setLoading],
+    [
+      employmentContractId,
+      hourlyRateCents,
+      mode,
+      reloadEntries,
+      repository,
+      setError,
+      setLoading,
+    ],
   )
 
   const updateEntry = useCallback(
     async (id: string, payload: UpdateTimeEntryInput) => {
-      if (mode !== 'employee' || !employeeId) return false
+      if (mode !== 'employee' || !employmentContractId) return false
 
       setError(null)
       setLoading(true)
@@ -80,7 +96,7 @@ export const useTimeEntriesActions = ({
       try {
         await repository.updateForEmployee({
           id,
-          employeeId,
+          employmentContractId,
           input: payload,
           hourlyRateCents,
         })
@@ -93,12 +109,20 @@ export const useTimeEntriesActions = ({
       await reloadEntries()
       return true
     },
-    [employeeId, hourlyRateCents, mode, reloadEntries, repository, setError, setLoading],
+    [
+      employmentContractId,
+      hourlyRateCents,
+      mode,
+      reloadEntries,
+      repository,
+      setError,
+      setLoading,
+    ],
   )
 
   const deleteEntry = useCallback(
     async (id: string) => {
-      if (mode !== 'employee' || !employeeId) return false
+      if (mode !== 'employee' || !employmentContractId) return false
 
       setError(null)
       setLoading(true)
@@ -106,7 +130,7 @@ export const useTimeEntriesActions = ({
       try {
         await repository.deleteForEmployee({
           id,
-          employeeId,
+          employmentContractId,
         })
       } catch (deleteError) {
         setError((deleteError as Error).message)
@@ -117,7 +141,7 @@ export const useTimeEntriesActions = ({
       await reloadEntries()
       return true
     },
-    [employeeId, mode, reloadEntries, repository, setError, setLoading],
+    [employmentContractId, mode, reloadEntries, repository, setError, setLoading],
   )
 
   return {
