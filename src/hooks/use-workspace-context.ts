@@ -1,5 +1,5 @@
 import { useAuth, useUser } from '@clerk/react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   createClerkSupabaseClient,
   type EmployeeRow,
@@ -51,14 +51,22 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
     window.localStorage.setItem(ACTIVE_WORKSPACE_CONTEXT_KEY, context)
   }, [])
 
+  const userRef = useRef(user)
+
+  useLayoutEffect(() => {
+    userRef.current = user
+  }, [user])
+
   const refresh = useCallback(async () => {
-    if (!enabled || !user) return
+    if (!enabled) return
+    const currentUser = userRef.current
+    if (!currentUser) return
 
     setLoading(true)
     setError(null)
 
-    const clerkUserId = user.id
-    const email = user.primaryEmailAddress?.emailAddress?.toLowerCase() ?? null
+    const clerkUserId = currentUser.id
+    const email = currentUser.primaryEmailAddress?.emailAddress?.toLowerCase() ?? null
     const normalizedEmail = email?.trim() ?? null
 
     try {
@@ -91,7 +99,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
             normalizedEmail,
             jwtEmailClaim,
             jwtEmailAddressClaim,
-            ...(user.emailAddresses ?? []).map((item) =>
+            ...(currentUser.emailAddresses ?? []).map((item) =>
               item.emailAddress.toLowerCase().trim(),
             ),
           ].filter((item): item is string => Boolean(item)),
@@ -154,7 +162,9 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
       setError((loadError as Error).message)
       setLoading(false)
     }
-  }, [enabled, getToken, repository, user])
+  }, [enabled, getToken, repository])
+
+  const clerkUserIdForEffect = user?.id ?? null
 
   useEffect(() => {
     if (!enabled) {
@@ -171,7 +181,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
       return
     }
 
-    if (!user) {
+    if (!clerkUserIdForEffect) {
       setLoading(false)
       setManagers([])
       setSelectedManagerProfileIdState(null)
@@ -181,7 +191,7 @@ export const useWorkspaceContext = (enabled: boolean): WorkspaceContextState => 
     }
 
     void refresh()
-  }, [enabled, refresh, user, userLoaded])
+  }, [enabled, refresh, clerkUserIdForEffect, userLoaded])
 
   const manager = useMemo(() => {
     if (managers.length === 0) return null

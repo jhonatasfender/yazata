@@ -7,12 +7,18 @@ type TimeInputProps = {
   name: string
   label: string
   className?: string
+  revalidateFieldsOnBlur?: string[]
 }
 
 const DEFAULT_TIME = '00:00'
 
-export const TimeInput = ({ name, label, className }: TimeInputProps) => {
-  const { control } = useFormContext()
+export const TimeInput = ({
+  name,
+  label,
+  className,
+  revalidateFieldsOnBlur,
+}: TimeInputProps) => {
+  const { control, trigger } = useFormContext()
 
   return (
     <Controller
@@ -28,6 +34,14 @@ export const TimeInput = ({ name, label, className }: TimeInputProps) => {
             onChange={(nextValue) =>
               field.onChange(nextValue ? nextValue.toString() : DEFAULT_TIME)
             }
+            onBlur={(event) => {
+              const next = event.relatedTarget as Node | null
+              if (next && event.currentTarget.contains(next)) return
+              field.onBlur()
+              if (revalidateFieldsOnBlur?.length) {
+                void trigger(revalidateFieldsOnBlur)
+              }
+            }}
             granularity="minute"
             hourCycle={24}
             className={cn('block', className)}
@@ -42,7 +56,7 @@ export const TimeInput = ({ name, label, className }: TimeInputProps) => {
               )}
             </DateInput>
             {fieldState.error ? (
-              <span className="mt-1 block text-xs text-red-300">
+              <span className="mt-1 block text-pretty text-xs leading-snug text-red-300">
                 {fieldState.error.message}
               </span>
             ) : null}

@@ -1,10 +1,23 @@
 import { SignUp } from '@clerk/react'
 import { dark } from '@clerk/themes'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
+import { getSiteOrigin } from '../lib/site-url'
 
 export const SignUpPage = () => {
+  const site = getSiteOrigin()
+  const canonical = site ? `${site}/sign-up` : undefined
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-10 text-zinc-100 md:px-8">
+      <Helmet>
+        <title>Criar conta — Yazata | Faith Tracker</title>
+        <meta
+          name="description"
+          content="Cadastre-se para acessar o Yazata e começar a registrar as horas trabalhadas."
+        />
+        {canonical ? <link rel="canonical" href={canonical} /> : null}
+      </Helmet>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-violet-700/15 blur-3xl" />
         <div className="absolute -right-16 bottom-8 h-72 w-72 rounded-full bg-zinc-500/10 blur-3xl" />

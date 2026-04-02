@@ -1,4 +1,5 @@
 import { UserButton } from '@clerk/react'
+import { Menu } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import {
@@ -95,30 +96,34 @@ export const AppTopbar = ({
   }, [nowMs, quickEntryStartedAt])
 
   return (
-    <header className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <header className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-1 items-start gap-2 sm:min-w-48 sm:flex-none sm:items-center sm:gap-3">
           <button
             type="button"
             aria-label="Open menu"
-            className="rounded-lg border border-zinc-700 px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 md:hidden"
+            className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-zinc-700 text-zinc-300 hover:bg-zinc-800 lg:hidden"
             onClick={onOpenMenu}
           >
-            Menu
+            <Menu size={20} strokeWidth={2.2} aria-hidden />
           </button>
-          <div>
-            <p className="text-sm text-zinc-400">Yazata - Faith Tracker</p>
-            <h1 className="text-2xl font-semibold">Team time tracking</h1>
+          <div className="min-w-0">
+            <p className="truncate text-xs text-zinc-400 sm:text-sm">
+              Yazata - Faith Tracker
+            </p>
+            <h1 className="text-xl font-semibold leading-tight sm:text-2xl">
+              Team time tracking
+            </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
           {elapsedLabel ? (
-            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 shadow-[0_0_25px_rgba(16,185,129,0.18)]">
+            <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 shadow-[0_0_25px_rgba(16,185,129,0.18)] sm:px-4 sm:py-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
                 Running
               </p>
-              <p className="font-mono text-3xl font-bold leading-none text-emerald-200">
+              <p className="font-mono text-2xl font-bold leading-none text-emerald-200 sm:text-3xl">
                 {elapsedLabel}
               </p>
             </div>

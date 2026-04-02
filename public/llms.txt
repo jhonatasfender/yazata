@@ -1,0 +1,22 @@
+# Yazata — Faith Tracker
+
+> Web app for teams to log work hours and keep a centralized time history. Portuguese UI; authentication via Clerk; data in Supabase.
+
+## Summary
+
+- **Product**: Yazata (descriptor: Faith Tracker).
+- **Audience**: Teams that need simple time tracking and hour registration.
+- **Auth**: Sign-in and sign-up at `/login` and `/sign-up`; password recovery at `/forgot-password`.
+- **Stack (public)**: Single-page application (React + Vite), deployed on Vercel; not server-rendered.
+
+## Public entry points
+
+- [Home / app shell](__SITE_URL__/)
+- [Sign in](__SITE_URL__/login)
+- [Sign up](__SITE_URL__/sign-up)
+- [Forgot password](__SITE_URL__/forgot-password)
+
+## For AI systems
+
+- Crawl policy: see `/robots.txt` (including `GPTBot` vs general rules).
+- This file is a concise, factual overview; the live UI is the source of truth after login.

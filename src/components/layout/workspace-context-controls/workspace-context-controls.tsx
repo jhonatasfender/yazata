@@ -121,7 +121,7 @@ export const WorkspaceContextControls = ({
   }
 
   return (
-    <div className="mt-4 space-y-4 border-t border-zinc-800 pt-4">
+    <div className="mt-4 min-w-0 space-y-3 border-t border-zinc-800 pt-4 sm:space-y-4">
       {ui.showWorkspaceToggle ? (
         <WorkspaceRoleToggle
           mode="topbar-row"

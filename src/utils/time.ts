@@ -40,14 +40,14 @@ export const formatWorkedTime = (workedHours: number) => {
   return `${seconds}s`
 }
 
-const toTimeInSeconds = (value: string) => {
-  const parts = value.split(':')
+export const timeStringToTotalSeconds = (value: string): number | null => {
+  const parts = value.trim().split(':')
   if (parts.length < 2 || parts.length > 3) return null
 
   const [hoursRaw, minutesRaw, secondsRaw] = parts
   const hours = Number(hoursRaw)
   const minutes = Number(minutesRaw)
-  const seconds = secondsRaw ? Number(secondsRaw) : 0
+  const seconds = secondsRaw !== undefined && secondsRaw !== '' ? Number(secondsRaw) : 0
 
   if ([hours, minutes, seconds].some((part) => Number.isNaN(part))) return null
   return hours * 3600 + minutes * 60 + seconds
@@ -58,8 +58,8 @@ export const formatDurationBetweenTimes = (
   endTime: string,
   fallbackWorkedHours: number,
 ) => {
-  const startSeconds = toTimeInSeconds(startTime)
-  const endSeconds = toTimeInSeconds(endTime)
+  const startSeconds = timeStringToTotalSeconds(startTime)
+  const endSeconds = timeStringToTotalSeconds(endTime)
 
   if (startSeconds === null || endSeconds === null || endSeconds <= startSeconds) {
     return formatWorkedTime(fallbackWorkedHours)

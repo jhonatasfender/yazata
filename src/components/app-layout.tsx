@@ -7,6 +7,7 @@ import { WorkspaceContextControls } from './layout/workspace-context-controls'
 import { getWorkspaceNavItems } from './layout/nav-items'
 import { useWorkspaceContext } from '../hooks/use-workspace-context'
 import type { ActiveWorkspaceContext } from '../hooks/use-workspace-context'
+import { cn } from '../lib/utils'
 import type { EmployeeRow, ManagerRow } from '../lib/supabase'
 import { WorkspaceErrorState } from './workspace-error-state'
 
@@ -73,8 +74,8 @@ export const AppLayout = () => {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-zinc-100">
-        <div className="mx-auto max-w-5xl px-4 py-10 md:px-8">
+      <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-zinc-100">
+        <div className="mx-auto max-w-5xl px-3 py-8 sm:px-4 lg:px-8 lg:py-10">
           <p className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 text-zinc-300">
             Preparing your workspace...
           </p>
@@ -85,8 +86,22 @@ export const AppLayout = () => {
 
   return (
     <WorkspaceErrorState error={error} onRetry={() => void refresh()}>
-      <main className="min-h-screen bg-zinc-950 text-zinc-100">
-        <div className="flex w-full gap-6 px-4 py-6 md:px-8 md:py-8">
+      <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-zinc-100">
+        <div
+          className={cn([
+            'flex w-full min-w-0 gap-4',
+            'pl-[max(0.75rem,env(safe-area-inset-left))]',
+            'pr-[max(0.75rem,env(safe-area-inset-right))]',
+            'pt-[max(1rem,env(safe-area-inset-top))]',
+            'pb-[max(1rem,env(safe-area-inset-bottom))]',
+            'sm:gap-5 sm:pt-5 sm:pb-5',
+            'lg:gap-6',
+            'lg:pl-[max(2rem,env(safe-area-inset-left))]',
+            'lg:pr-[max(2rem,env(safe-area-inset-right))]',
+            'lg:pt-[max(2rem,env(safe-area-inset-top))]',
+            'lg:pb-[max(2rem,env(safe-area-inset-bottom))]',
+          ])}
+        >
           <MobileSidebarDrawer
             isOpen={mobileOpen}
             onClose={() => setMobileOpen(false)}

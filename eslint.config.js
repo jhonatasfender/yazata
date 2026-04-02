@@ -25,4 +25,14 @@ export default defineConfig([
       'react-hooks/set-state-in-effect': 'off',
     },
   },
+  {
+    files: ['middleware.ts'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        Request: 'readonly',
+        Response: 'readonly',
+      },
+    },
+  },
 ])

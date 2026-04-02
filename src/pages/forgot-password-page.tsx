@@ -2,13 +2,17 @@ import { useSignIn } from '@clerk/react'
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Helmet } from 'react-helmet-async'
 import { Link, useNavigate } from 'react-router-dom'
+import { getSiteOrigin } from '../lib/site-url'
 
 type Step = 'request' | 'reset'
 
 export const ForgotPasswordPage = () => {
   const { signIn } = useSignIn()
   const navigate = useNavigate()
+  const site = getSiteOrigin()
+  const canonical = site ? `${site}/forgot-password` : undefined
 
   const [step, setStep] = useState<Step>('request')
   const [email, setEmail] = useState('')
@@ -93,6 +97,14 @@ export const ForgotPasswordPage = () => {
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-10 text-zinc-100 md:px-8">
+      <Helmet>
+        <title>Recuperar senha — Yazata | Faith Tracker</title>
+        <meta
+          name="description"
+          content="Redefina a senha da sua conta Yazata com o código enviado por e-mail."
+        />
+        {canonical ? <link rel="canonical" href={canonical} /> : null}
+      </Helmet>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-violet-700/15 blur-3xl" />
         <div className="absolute -right-16 bottom-8 h-72 w-72 rounded-full bg-zinc-500/10 blur-3xl" />

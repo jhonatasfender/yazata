@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import type { AppLayoutContext } from '../components/app-layout'
 import { useProjects } from '../hooks/use-projects'
@@ -52,6 +52,7 @@ export const RegisterPage = () => {
   const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
   const [quickEntryId, setQuickEntryId] = useState<string | null>(null)
   const [currentTimeMs, setCurrentTimeMs] = useState<number | null>(null)
+  const quickEntryPersistRef = useRef({ description: '', projectId: '' })
   const {
     entries,
     loading,
@@ -122,6 +123,7 @@ export const RegisterPage = () => {
     setQuickEntryId(null)
     setQuickEntryStartedAt(null)
     setCurrentTimeMs(null)
+    quickEntryPersistRef.current = { description: '', projectId: '' }
     window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
   }
 
@@ -166,8 +168,28 @@ export const RegisterPage = () => {
     await deleteEntry(id)
   }
 
-  const onStartQuickEntry = async () => {
-    if (editingEntry || loading || quickEntryStartedAt || quickEntryId) return
+  const onStartQuickEntry = async (draft?: TimeEntryFormValues) => {
+    if (loading || quickEntryStartedAt || quickEntryId) return
+
+    const snapshot = editingEntry ? (draft ?? editingEntry.values) : null
+
+    if (editingEntry) {
+      setEditingEntry(null)
+      setFormVersion((current) => current + 1)
+    }
+
+    quickEntryPersistRef.current =
+      snapshot !== null
+        ? {
+            description: snapshot.description?.trim() ?? '',
+            projectId: snapshot.projectId ?? '',
+          }
+        : { description: '', projectId: '' }
+
+    const descriptionForCreate =
+      snapshot !== null
+        ? quickEntryPersistRef.current.description
+        : 'Registro rápido em andamento'
 
     const startDate = new Date()
     const startedAtIso = startDate.toISOString()
@@ -180,8 +202,8 @@ export const RegisterPage = () => {
       workDate: toLocalDate(startDate),
       startTime,
       endTime: toLocalTime(oneSecondAfterStart, true),
-      description: 'Registro rápido em andamento',
-      projectId: '',
+      description: descriptionForCreate,
+      projectId: quickEntryPersistRef.current.projectId,
     })
 
     if (!entryId) {
@@ -218,8 +240,8 @@ export const RegisterPage = () => {
       workDate,
       startTime,
       endTime,
-      description: '',
-      projectId: '',
+      description: quickEntryPersistRef.current.description,
+      projectId: quickEntryPersistRef.current.projectId,
     })
 
     if (success) {

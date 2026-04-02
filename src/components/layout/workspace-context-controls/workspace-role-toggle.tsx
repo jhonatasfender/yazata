@@ -65,19 +65,25 @@ export const WorkspaceRoleToggle = ({
 
   if (mode === 'topbar-row') {
     return (
-      <div className="flex flex-wrap items-center gap-3">
-        <span className="text-sm text-zinc-400">Workspace</span>
-        <div className="inline-flex rounded-lg border border-zinc-700 bg-zinc-950 p-0.5">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+        <span className="shrink-0 text-sm text-zinc-400">Workspace</span>
+        <div className="inline-flex min-w-0 max-w-full rounded-lg border border-zinc-700 bg-zinc-950 p-0.5">
           <button
             type="button"
-            className={topbarBtn(activeWorkspaceContext === 'employee')}
+            className={cn(
+              topbarBtn(activeWorkspaceContext === 'employee'),
+              'min-w-0 flex-1 sm:flex-none',
+            )}
             onClick={() => onSelect('employee')}
           >
             Employee
           </button>
           <button
             type="button"
-            className={topbarBtn(activeWorkspaceContext === 'manager')}
+            className={cn(
+              topbarBtn(activeWorkspaceContext === 'manager'),
+              'min-w-0 flex-1 sm:flex-none',
+            )}
             onClick={() => onSelect('manager')}
           >
             Manager

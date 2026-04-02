@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { timeStringToTotalSeconds } from '../utils/time'
 
 export const timeEntrySchema = z
   .object({
@@ -8,9 +9,18 @@ export const timeEntrySchema = z
     description: z.string(),
     projectId: z.string().optional(),
   })
-  .refine((data) => data.endTime > data.startTime, {
-    message: 'Horário final deve ser maior que o inicial',
-    path: ['endTime'],
+  .superRefine((data, ctx) => {
+    const startSeconds = timeStringToTotalSeconds(data.startTime)
+    const endSeconds = timeStringToTotalSeconds(data.endTime)
+    if (startSeconds === null || endSeconds === null) return
+
+    if (endSeconds <= startSeconds) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'O fim deve ser depois do início no mesmo dia.',
+        path: ['endTime'],
+      })
+    }
   })
 
 export type TimeEntryFormValues = z.infer<typeof timeEntrySchema>

@@ -1,11 +1,24 @@
 import { SignIn } from '@clerk/react'
 import { dark } from '@clerk/themes'
 import { motion } from 'framer-motion'
+import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
+import { getSiteOrigin } from '../lib/site-url'
 
 export const LoginPage = () => {
+  const site = getSiteOrigin()
+  const canonical = site ? `${site}/login` : undefined
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-zinc-950 px-4 py-10 text-zinc-100 md:px-8">
+      <Helmet>
+        <title>Login — Yazata | Faith Tracker</title>
+        <meta
+          name="description"
+          content="Faça login para registrar jornada, acompanhar horas e manter o histórico centralizado no Yazata."
+        />
+        {canonical ? <link rel="canonical" href={canonical} /> : null}
+      </Helmet>
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-violet-700/15 blur-3xl" />
         <div className="absolute -right-16 bottom-8 h-72 w-72 rounded-full bg-zinc-500/10 blur-3xl" />

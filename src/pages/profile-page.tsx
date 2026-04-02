@@ -29,9 +29,9 @@ export const ProfilePage = () => {
   const showCompanyNav = managers.length > 0
 
   return (
-    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5">
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5">
       <h2 className="mb-4 text-lg font-semibold text-zinc-100">Account</h2>
-      <div className="flex w-full min-h-[min(70vh,36rem)] flex-col gap-5 md:flex-row md:items-stretch md:gap-6">
+      <div className="flex w-full min-h-[min(70vh,36rem)] min-w-0 flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-6">
         <ProfileAccountSettingsNav
           showWorkspaceNav={showWorkspaceNav}
           showCompanyNav={showCompanyNav}

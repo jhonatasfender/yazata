@@ -29,13 +29,13 @@ export const WorkspaceCompanyBlock = ({
   if (showManagerSwitcher) {
     if (placement === 'topbar') {
       return (
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="text-sm text-zinc-400" htmlFor={selectId}>
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+          <label className="shrink-0 text-sm text-zinc-400" htmlFor={selectId}>
             Active company
           </label>
           <select
             id={selectId}
-            className="min-w-[200px] max-w-full rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none ring-violet-400 focus:ring-2"
+            className="w-full min-w-0 rounded-lg border border-zinc-700 bg-zinc-950 px-3 py-2 text-sm text-zinc-100 outline-none ring-violet-400 focus:ring-2 sm:w-auto sm:min-w-[200px] sm:max-w-full"
             value={selectedManagerProfileId ?? ''}
             onChange={(event) => {
               const value = event.target.value
