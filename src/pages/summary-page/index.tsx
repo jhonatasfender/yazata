@@ -39,12 +39,11 @@ export const SummaryPage = () => {
           title="My time"
           profileHint="Active employment contract (employment_contract_id)."
           entries={myHoursQuery.entries}
-          totalWeekHours={myHoursQuery.totalWeekHours}
-          totalWeekAmountCents={myHoursQuery.totalWeekAmountCents}
           error={myHoursQuery.error}
           loading={myHoursQuery.loading}
           showEmployeeColumn={false}
           emptyMessage="No time entries for this contract in the selected window."
+          onRefresh={myHoursQuery.reloadEntries}
         />
       ) : null}
 
@@ -53,12 +52,11 @@ export const SummaryPage = () => {
           title="Team time"
           profileHint="Contracts under your manager profile (company scope)."
           entries={teamHoursQuery.entries}
-          totalWeekHours={teamHoursQuery.totalWeekHours}
-          totalWeekAmountCents={teamHoursQuery.totalWeekAmountCents}
           error={teamHoursQuery.error}
           loading={teamHoursQuery.loading}
           showEmployeeColumn
           emptyMessage="No team time entries in this period."
+          onRefresh={teamHoursQuery.reloadEntries}
         />
       ) : null}
     </div>

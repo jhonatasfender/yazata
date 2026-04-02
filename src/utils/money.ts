@@ -4,6 +4,11 @@ export const formatBRL = (cents: number) =>
     currency: 'BRL',
   }).format(cents / 100)
 
+export const grossCentsFromElapsedMs = (
+  elapsedMs: number,
+  hourlyRateCentsSnapshot: number,
+) => Math.round((elapsedMs / 3_600_000) * hourlyRateCentsSnapshot)
+
 export const toCents = (value: string) => {
   const normalized = value.replace(',', '.').trim()
   const parsed = Number(normalized)

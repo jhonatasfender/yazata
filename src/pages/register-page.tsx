@@ -5,6 +5,10 @@ import { useProjects } from '../hooks/use-projects'
 import { useTimeEntries } from '../hooks/use-time-entries'
 import { confirmDialog } from '../lib/dialog'
 import type { TimeEntryFormValues } from '../schemas/time-entry-schema'
+import {
+  QUICK_ENTRY_IN_PROGRESS_DESCRIPTION,
+  QUICK_ENTRY_STORAGE_KEY,
+} from '../constants/quick-entry'
 import { findTimeEntryOverlap } from '../utils/time-entry-overlap'
 import { today } from '../utils/time'
 import { RegisterEntryFormCard } from './register/register-entry-form-card'
@@ -34,8 +38,6 @@ const toLocalTime = (value: Date, includeSeconds = false) => {
   const seconds = String(value.getSeconds()).padStart(2, '0')
   return `${hours}:${minutes}:${seconds}`
 }
-
-const QUICK_ENTRY_STORAGE_KEY = 'tracker.quick-entry'
 
 const formatElapsedTime = (elapsedMs: number) => {
   const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
@@ -206,7 +208,7 @@ export const RegisterPage = () => {
     const descriptionForCreate =
       snapshot !== null
         ? quickEntryPersistRef.current.description
-        : 'Registro rápido em andamento'
+        : QUICK_ENTRY_IN_PROGRESS_DESCRIPTION
 
     const startDate = new Date()
     const startedAtIso = startDate.toISOString()

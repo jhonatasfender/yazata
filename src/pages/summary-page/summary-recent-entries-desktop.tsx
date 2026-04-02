@@ -1,7 +1,11 @@
-import { TimeEntryIssueWarning } from '../../components/time-entry-issue-warning'
+import { useSummaryEntryInProgressLive } from '../../hooks/use-summary-entry-in-progress-live'
 import type { TimeEntryViewRow } from '../../repositories/time-entries-repository'
-import { formatBRL } from '../../utils/money'
-import { formatDurationBetweenTimes, formatWorkDate } from '../../utils/time'
+import { formatWorkDate } from '../../utils/time'
+import {
+  SummaryRecentEntryAmountCell,
+  SummaryRecentEntryDurationCell,
+  SummaryRecentEntryEndCell,
+} from './summary-recent-entry-in-progress'
 
 const emptyIssueEntryIds = new Set<string>()
 
@@ -9,6 +13,48 @@ type SummaryRecentEntriesDesktopProps = {
   entries: TimeEntryViewRow[]
   showEmployeeColumn: boolean
   issueEntryIds?: Set<string>
+}
+
+const SummaryRecentEntryRowDesktop = ({
+  entry,
+  showEmployeeColumn,
+  issueEntryIds,
+}: {
+  entry: TimeEntryViewRow
+  showEmployeeColumn: boolean
+  issueEntryIds: Set<string>
+}) => {
+  const live = useSummaryEntryInProgressLive(entry)
+
+  return (
+    <tr className="border-b border-zinc-800/80 transition-colors last:border-0 hover:bg-zinc-900/50">
+      {showEmployeeColumn ? (
+        <td className="whitespace-nowrap px-3 py-2.5 text-zinc-400">
+          {entry.employee?.employee_email ?? '-'}
+        </td>
+      ) : null}
+      <td className="whitespace-nowrap px-3 py-2.5">{formatWorkDate(entry.work_date)}</td>
+      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-zinc-400">
+        {entry.start_time}
+      </td>
+      <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-zinc-400">
+        <SummaryRecentEntryEndCell entry={entry} />
+      </td>
+      <td className="whitespace-nowrap px-3 py-2.5">
+        <SummaryRecentEntryDurationCell
+          entry={entry}
+          issueEntryIds={issueEntryIds}
+          live={live}
+        />
+      </td>
+      <td className="whitespace-nowrap px-3 py-2.5">
+        <SummaryRecentEntryAmountCell entry={entry} live={live} />
+      </td>
+      <td className="max-w-56 truncate px-3 py-2.5 text-zinc-400">
+        {entry.description ?? '-'}
+      </td>
+    </tr>
+  )
 }
 
 export const SummaryRecentEntriesDesktop = ({
@@ -39,43 +85,12 @@ export const SummaryRecentEntriesDesktop = ({
         </thead>
         <tbody className="text-zinc-300">
           {entries.map((entry) => (
-            <tr
+            <SummaryRecentEntryRowDesktop
               key={entry.id}
-              className="border-b border-zinc-800/80 transition-colors last:border-0 hover:bg-zinc-900/50"
-            >
-              {showEmployeeColumn ? (
-                <td className="whitespace-nowrap px-3 py-2.5 text-zinc-400">
-                  {entry.employee?.employee_email ?? '-'}
-                </td>
-              ) : null}
-              <td className="whitespace-nowrap px-3 py-2.5">
-                {formatWorkDate(entry.work_date)}
-              </td>
-              <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-zinc-400">
-                {entry.start_time}
-              </td>
-              <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-zinc-400">
-                {entry.end_time}
-              </td>
-              <td className="whitespace-nowrap px-3 py-2.5">
-                <span className="inline-flex items-center gap-1.5 font-medium text-zinc-200">
-                  {issueEntryIds.has(entry.id) ? (
-                    <TimeEntryIssueWarning className="inline-flex" />
-                  ) : null}
-                  {formatDurationBetweenTimes(
-                    entry.start_time,
-                    entry.end_time,
-                    entry.worked_hours,
-                  )}
-                </span>
-              </td>
-              <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-200">
-                {formatBRL(entry.gross_amount_cents)}
-              </td>
-              <td className="max-w-56 truncate px-3 py-2.5 text-zinc-400">
-                {entry.description ?? '-'}
-              </td>
-            </tr>
+              entry={entry}
+              showEmployeeColumn={showEmployeeColumn}
+              issueEntryIds={issueEntryIds}
+            />
           ))}
         </tbody>
       </table>

@@ -88,3 +88,31 @@ export const formatHoursAndMinutes = (workedHours: number) => {
   if (hours === 0) return `${minutes}m`
   return `${hours}h ${minutes}m`
 }
+
+export const parseWorkDateTimeLocalMs = (
+  workDate: string,
+  time: string,
+): number | null => {
+  const date = workDate.trim()
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+
+  const parts = time.trim().split(':')
+  if (parts.length < 2 || parts.length > 3) return null
+
+  const hours = Number(parts[0])
+  const minutes = Number(parts[1])
+  const seconds = parts.length === 3 && parts[2] !== '' ? Number(parts[2]) : 0
+  if ([hours, minutes, seconds].some((n) => Number.isNaN(n))) return null
+
+  const iso = `${date}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  const ms = new Date(iso).getTime()
+  return Number.isNaN(ms) ? null : ms
+}
+
+export const formatElapsedClock = (elapsedMs: number) => {
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+}

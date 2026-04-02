@@ -8,12 +8,14 @@ const isWithinLastWeek = (dateString: string) => {
   return date >= sevenDaysAgo && date <= now
 }
 
+export const getEntriesWithinLastWeek = (entries: TimeEntryViewRow[]) =>
+  entries.filter((entry) => isWithinLastWeek(entry.work_date))
+
 export const getTotalWeekHours = (entries: TimeEntryViewRow[]) =>
-  entries
-    .filter((entry) => isWithinLastWeek(entry.work_date))
-    .reduce((sum, entry) => sum + entry.worked_hours, 0)
+  getEntriesWithinLastWeek(entries).reduce((sum, entry) => sum + entry.worked_hours, 0)
 
 export const getTotalWeekAmountCents = (entries: TimeEntryViewRow[]) =>
-  entries
-    .filter((entry) => isWithinLastWeek(entry.work_date))
-    .reduce((sum, entry) => sum + entry.gross_amount_cents, 0)
+  getEntriesWithinLastWeek(entries).reduce(
+    (sum, entry) => sum + entry.gross_amount_cents,
+    0,
+  )
