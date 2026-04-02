@@ -64,6 +64,7 @@ export const useTimeEntries = ({
     entries,
     loading,
     error,
+    setError: setErrorState,
     totalWeekHours,
     totalWeekAmountCents,
     createEntry,

@@ -1,15 +1,20 @@
+import { TimeEntryIssueWarning } from '../../components/time-entry-issue-warning'
 import type { TimeEntryViewRow } from '../../repositories/time-entries-repository'
 import { formatBRL } from '../../utils/money'
 import { formatDurationBetweenTimes, formatWorkDate } from '../../utils/time'
 
+const emptyIssueEntryIds = new Set<string>()
+
 type SummaryRecentEntriesDesktopProps = {
   entries: TimeEntryViewRow[]
   showEmployeeColumn: boolean
+  issueEntryIds?: Set<string>
 }
 
 export const SummaryRecentEntriesDesktop = ({
   entries,
   showEmployeeColumn,
+  issueEntryIds = emptyIssueEntryIds,
 }: SummaryRecentEntriesDesktopProps) => (
   <div className="mt-5 hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/30 md:block">
     <div className="border-b border-zinc-800 bg-zinc-950/80 px-3 py-2">
@@ -52,12 +57,17 @@ export const SummaryRecentEntriesDesktop = ({
               <td className="whitespace-nowrap px-3 py-2.5 font-mono text-xs text-zinc-400">
                 {entry.end_time}
               </td>
-              <td className="whitespace-nowrap px-3 py-2.5 font-medium text-zinc-200">
-                {formatDurationBetweenTimes(
-                  entry.start_time,
-                  entry.end_time,
-                  entry.worked_hours,
-                )}
+              <td className="whitespace-nowrap px-3 py-2.5">
+                <span className="inline-flex items-center gap-1.5 font-medium text-zinc-200">
+                  {issueEntryIds.has(entry.id) ? (
+                    <TimeEntryIssueWarning className="inline-flex" />
+                  ) : null}
+                  {formatDurationBetweenTimes(
+                    entry.start_time,
+                    entry.end_time,
+                    entry.worked_hours,
+                  )}
+                </span>
               </td>
               <td className="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-200">
                 {formatBRL(entry.gross_amount_cents)}

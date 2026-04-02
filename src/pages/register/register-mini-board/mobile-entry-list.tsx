@@ -3,9 +3,13 @@ import { formatWorkDate } from '../../../utils/time'
 import type { RegisterEntry } from '../register-types'
 import { RegisterEntryRowActions } from './entry-actions'
 import { getRegisterEntryRowLabels } from './entry-row-labels'
+import { TimeEntryIssueWarning } from '../../../components/time-entry-issue-warning'
+
+const emptyIssueEntryIds = new Set<string>()
 
 type RegisterMiniBoardMobileEntryListProps = {
   entries: RegisterEntry[]
+  issueEntryIds?: Set<string>
   activeEntryId: string | null
   activeEntryElapsedLabel: string | null
   onEditEntry: (entry: RegisterEntry) => void
@@ -14,6 +18,7 @@ type RegisterMiniBoardMobileEntryListProps = {
 
 export const RegisterMiniBoardMobileEntryList = ({
   entries,
+  issueEntryIds = emptyIssueEntryIds,
   activeEntryId,
   activeEntryElapsedLabel,
   onEditEntry,
@@ -38,7 +43,10 @@ export const RegisterMiniBoardMobileEntryList = ({
               </p>
               <p className="mt-1 font-mono text-xs text-zinc-400">{timeRangeLabel}</p>
             </div>
-            <p className="shrink-0 text-sm font-semibold tabular-nums text-violet-200">
+            <p className="flex shrink-0 items-center gap-1.5 text-sm font-semibold tabular-nums text-violet-200">
+              {issueEntryIds.has(entry.id) ? (
+                <TimeEntryIssueWarning className="inline-flex" />
+              ) : null}
               {durationLabel}
             </p>
           </div>

@@ -1,15 +1,20 @@
+import { TimeEntryIssueWarning } from '../../components/time-entry-issue-warning'
 import type { TimeEntryViewRow } from '../../repositories/time-entries-repository'
 import { formatBRL } from '../../utils/money'
 import { formatDurationBetweenTimes, formatWorkDate } from '../../utils/time'
 
+const emptyIssueEntryIds = new Set<string>()
+
 type SummaryRecentEntriesMobileProps = {
   entries: TimeEntryViewRow[]
   showEmployeeColumn: boolean
+  issueEntryIds?: Set<string>
 }
 
 export const SummaryRecentEntriesMobile = ({
   entries,
   showEmployeeColumn,
+  issueEntryIds = emptyIssueEntryIds,
 }: SummaryRecentEntriesMobileProps) => (
   <div className="mt-5 md:hidden">
     <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
@@ -35,7 +40,10 @@ export const SummaryRecentEntriesMobile = ({
                 {entry.start_time} → {entry.end_time}
               </p>
             </div>
-            <p className="shrink-0 text-sm font-semibold tabular-nums text-violet-200">
+            <p className="flex shrink-0 items-center gap-1.5 text-sm font-semibold tabular-nums text-violet-200">
+              {issueEntryIds.has(entry.id) ? (
+                <TimeEntryIssueWarning className="inline-flex" />
+              ) : null}
               {formatDurationBetweenTimes(
                 entry.start_time,
                 entry.end_time,

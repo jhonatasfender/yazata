@@ -5,6 +5,7 @@ import { useProjects } from '../hooks/use-projects'
 import { useTimeEntries } from '../hooks/use-time-entries'
 import { confirmDialog } from '../lib/dialog'
 import type { TimeEntryFormValues } from '../schemas/time-entry-schema'
+import { findTimeEntryOverlap } from '../utils/time-entry-overlap'
 import { today } from '../utils/time'
 import { RegisterEntryFormCard } from './register/register-entry-form-card'
 import { RegisterMiniBoard } from './register/register-mini-board'
@@ -57,6 +58,7 @@ export const RegisterPage = () => {
     entries,
     loading,
     error,
+    setError,
     createEntry,
     createEntryAndGetId,
     updateEntry,
@@ -133,6 +135,21 @@ export const RegisterPage = () => {
     if (Number.isNaN(startedAtMs)) return null
     return formatElapsedTime(currentTimeMs - startedAtMs)
   }, [currentTimeMs, quickEntryStartedAt])
+
+  const overlapErrorMessage =
+    'Já existe outro registro neste dia que cruza esse intervalo de horários.'
+
+  const afterSchemaValidate = (values: TimeEntryFormValues) => {
+    const overlap = findTimeEntryOverlap(
+      entries,
+      values.workDate,
+      values.startTime,
+      values.endTime,
+      editingEntry?.id ?? null,
+    )
+    if (!overlap) return undefined
+    return { path: 'endTime' as const, message: overlapErrorMessage }
+  }
 
   const onSubmit = async (values: TimeEntryFormValues) => {
     const success = editingEntry
@@ -236,6 +253,18 @@ export const RegisterPage = () => {
       endTime = '23:59:59'
     }
 
+    const overlap = findTimeEntryOverlap(
+      entries,
+      workDate,
+      startTime,
+      endTime,
+      quickEntryId,
+    )
+    if (overlap) {
+      setError(overlapErrorMessage)
+      return
+    }
+
     const success = await updateEntry(quickEntryId, {
       workDate,
       startTime,
@@ -320,6 +349,7 @@ export const RegisterPage = () => {
         loading={loading}
         projectOptions={projectOptions}
         onSubmit={onSubmit}
+        afterSchemaValidate={afterSchemaValidate}
         defaultValues={editingEntry?.values ?? defaultForm()}
         setEditingEntry={setEditingEntry}
         setFormVersion={setFormVersion}

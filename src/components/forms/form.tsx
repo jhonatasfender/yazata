@@ -4,6 +4,7 @@ import {
   FormProvider,
   useForm,
   type DefaultValues,
+  type FieldPath,
   type FieldValues,
   type Resolver,
   type SubmitHandler,
@@ -17,14 +18,16 @@ type FormProps<T extends FieldValues> = {
   defaultValues: DefaultValues<T>
   onSubmit: SubmitHandler<T>
   schema?: ZodSchema
+  afterSchemaValidate?: (values: T) => { path: FieldPath<T>; message: string } | undefined
   children: ReactNode
   formOptions?: Omit<UseFormProps<T>, 'defaultValues' | 'resolver'>
 } & Omit<FormHTMLAttributes<HTMLFormElement>, 'onSubmit' | 'children'>
 
 export const Form = <T extends FieldValues>({
   defaultValues,
-  onSubmit,
+  onSubmit: submitHandler,
   schema,
+  afterSchemaValidate,
   children,
   formOptions,
   className,
@@ -41,7 +44,19 @@ export const Form = <T extends FieldValues>({
   return (
     <FormProvider {...methods}>
       <form
-        onSubmit={methods.handleSubmit(onSubmit)}
+        onSubmit={methods.handleSubmit(async (data) => {
+          if (afterSchemaValidate) {
+            const clientError = afterSchemaValidate(data)
+            if (clientError) {
+              methods.setError(clientError.path, {
+                type: 'manual',
+                message: clientError.message,
+              })
+              return
+            }
+          }
+          await submitHandler(data)
+        })}
         className={cn(className)}
         {...props}
       >

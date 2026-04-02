@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { Play, Square } from 'lucide-react'
-import { useFormContext } from 'react-hook-form'
+import { useFormContext, type FieldPath } from 'react-hook-form'
 import { Form } from '../../components/forms/form'
 import { Input } from '../../components/forms/input'
 import { Select } from '../../components/forms/select'
@@ -73,6 +73,9 @@ type RegisterEntryFormCardProps = {
   loading: boolean
   projectOptions: Array<{ value: string; label: string }>
   onSubmit: (values: TimeEntryFormValues) => Promise<void>
+  afterSchemaValidate?: (
+    values: TimeEntryFormValues,
+  ) => { path: FieldPath<TimeEntryFormValues>; message: string } | undefined
   defaultValues: TimeEntryFormValues
   setEditingEntry: Dispatch<SetStateAction<EditingEntry | null>>
   setFormVersion: Dispatch<SetStateAction<number>>
@@ -89,6 +92,7 @@ export const RegisterEntryFormCard = ({
   loading,
   projectOptions,
   onSubmit,
+  afterSchemaValidate,
   defaultValues,
   setEditingEntry,
   setFormVersion,
@@ -105,6 +109,7 @@ export const RegisterEntryFormCard = ({
         schema={timeEntrySchema}
         defaultValues={defaultValues}
         onSubmit={onSubmit}
+        afterSchemaValidate={afterSchemaValidate}
       >
         <div className="flex flex-col gap-3 border-b border-zinc-800 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
