@@ -34,7 +34,7 @@ export const DesktopSidebar = ({
 
   return (
     <motion.aside
-      className="hidden h-[calc(100vh-3rem)] shrink-0 self-start flex-col rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 lg:flex lg:h-[calc(100vh-4rem)]"
+      className="hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 p-4 lg:flex lg:sticky lg:top-[max(2rem,env(safe-area-inset-top))] lg:h-[calc(100svh-max(2rem,env(safe-area-inset-top))-max(2rem,env(safe-area-inset-bottom)))] lg:max-h-[calc(100svh-max(2rem,env(safe-area-inset-top))-max(2rem,env(safe-area-inset-bottom)))] lg:self-start"
       variants={desktopSidebarVariants}
       animate={desktopMode}
       initial={false}

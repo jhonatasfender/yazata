@@ -74,7 +74,7 @@ export const AppLayout = () => {
 
   if (loading) {
     return (
-      <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-zinc-100">
+      <main className="min-h-dvh bg-zinc-950 text-zinc-100">
         <div className="mx-auto max-w-5xl px-3 py-8 sm:px-4 lg:px-8 lg:py-10">
           <p className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-5 text-zinc-300">
             Preparing your workspace...
@@ -86,7 +86,7 @@ export const AppLayout = () => {
 
   return (
     <WorkspaceErrorState error={error} onRetry={() => void refresh()}>
-      <main className="min-h-dvh overflow-x-hidden bg-zinc-950 text-zinc-100">
+      <main className="min-h-dvh bg-zinc-950 text-zinc-100">
         <div
           className={cn([
             'flex w-full min-w-0 gap-4',
@@ -128,7 +128,7 @@ export const AppLayout = () => {
             }
           />
 
-          <div className="min-w-0 flex-1 space-y-6">
+          <div className="min-w-0 min-h-0 flex-1 space-y-6 overflow-x-hidden">
             <AppTopbar
               onOpenMenu={() => setMobileOpen(true)}
               currentEmployeeId={employee?.id ?? null}

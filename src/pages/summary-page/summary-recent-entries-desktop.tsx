@@ -13,6 +13,7 @@ type SummaryRecentEntriesDesktopProps = {
   entries: TimeEntryViewRow[]
   showEmployeeColumn: boolean
   issueEntryIds?: Set<string>
+  periodLabel: string
 }
 
 const SummaryRecentEntryRowDesktop = ({
@@ -61,12 +62,12 @@ export const SummaryRecentEntriesDesktop = ({
   entries,
   showEmployeeColumn,
   issueEntryIds = emptyIssueEntryIds,
+  periodLabel,
 }: SummaryRecentEntriesDesktopProps) => (
   <div className="mt-5 hidden overflow-hidden rounded-xl border border-zinc-800 bg-zinc-950/30 md:block">
     <div className="border-b border-zinc-800 bg-zinc-950/80 px-3 py-2">
-      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-        Recent entries
-      </p>
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Entries</p>
+      <p className="mt-0.5 text-[0.65rem] text-zinc-600">{periodLabel}</p>
     </div>
     <div className="overflow-x-auto">
       <table className="min-w-full text-left text-sm">

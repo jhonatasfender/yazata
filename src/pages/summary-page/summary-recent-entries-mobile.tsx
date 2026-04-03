@@ -13,6 +13,7 @@ type SummaryRecentEntriesMobileProps = {
   entries: TimeEntryViewRow[]
   showEmployeeColumn: boolean
   issueEntryIds?: Set<string>
+  periodLabel: string
 }
 
 const SummaryRecentEntryCardMobile = ({
@@ -64,12 +65,14 @@ export const SummaryRecentEntriesMobile = ({
   entries,
   showEmployeeColumn,
   issueEntryIds = emptyIssueEntryIds,
+  periodLabel,
 }: SummaryRecentEntriesMobileProps) => (
   <div className="mt-5 md:hidden">
-    <p className="mb-3 text-xs font-medium uppercase tracking-wide text-zinc-500">
-      Recent entries
-    </p>
-    <ul className="space-y-3" aria-label="Recent entries">
+    <div className="mb-3">
+      <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">Entries</p>
+      <p className="mt-0.5 text-[0.65rem] text-zinc-600">{periodLabel}</p>
+    </div>
+    <ul className="space-y-3" aria-label="Entries in selected month">
       {entries.map((entry) => (
         <SummaryRecentEntryCardMobile
           key={entry.id}
