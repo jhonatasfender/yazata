@@ -4,7 +4,6 @@ import {
 } from '../constants/quick-entry'
 import { timeStringToTotalSeconds } from './time'
 
-/** Segundos máximos entre início e fim no placeholder enquanto o registro rápido não foi salvo (margem acima do mínimo de cronômetro). */
 const QUICK_ENTRY_PLACEHOLDER_MAX_DELTA_SECONDS = Math.ceil(
   (QUICK_ENTRY_MIN_FINALIZE_MS + 60_000) / 1000,
 )
