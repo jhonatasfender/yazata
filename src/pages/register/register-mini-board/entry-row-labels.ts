@@ -5,6 +5,7 @@ import { formatClockTime } from './format-clock-time'
 type ActiveContext = {
   activeEntryId: string | null
   activeEntryElapsedLabel: string | null
+  activeEntryPaused?: boolean
 }
 
 export const getRegisterEntryRowLabels = (entry: RegisterEntry, ctx: ActiveContext) => {
@@ -14,7 +15,7 @@ export const getRegisterEntryRowLabels = (entry: RegisterEntry, ctx: ActiveConte
       ? ctx.activeEntryElapsedLabel
       : formatDurationBetweenTimes(entry.start_time, entry.end_time, entry.worked_hours)
   const timeRangeLabel = isActive
-    ? `${formatClockTime(entry.start_time)} - Em execucao`
+    ? `${formatClockTime(entry.start_time)} - ${ctx.activeEntryPaused ? 'Pausado' : 'Em execucao'}`
     : `${formatClockTime(entry.start_time)} - ${formatClockTime(entry.end_time)}`
   return { durationLabel, timeRangeLabel }
 }

@@ -7,6 +7,10 @@ import {
   type WorkspaceManagerOption,
 } from './workspace-context-controls'
 import type { ActiveWorkspaceContext } from '../../hooks/use-workspace-context'
+import {
+  quickEntryElapsedMs,
+  readQuickEntryLocalStateForEmployee,
+} from '../../utils/quick-entry-local-state'
 
 export type ManagerOption = WorkspaceManagerOption
 
@@ -21,8 +25,6 @@ type AppTopbarProps = {
   activeWorkspaceContext: ActiveWorkspaceContext
   onSelectWorkspaceContext: (context: ActiveWorkspaceContext) => void
 }
-
-const QUICK_ENTRY_STORAGE_KEY = 'tracker.quick-entry'
 
 const formatElapsedTime = (elapsedMs: number) => {
   const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
@@ -48,34 +50,13 @@ export const AppTopbar = ({
 
   useEffect(() => {
     const syncQuickEntry = () => {
-      const raw = window.localStorage.getItem(QUICK_ENTRY_STORAGE_KEY)
-      if (!raw) {
+      const state = readQuickEntryLocalStateForEmployee(currentEmployeeId)
+      if (!state) {
         setQuickEntryStartedAt(null)
         return
       }
 
-      try {
-        const parsed = JSON.parse(raw) as {
-          employeeId?: string
-          id?: string
-          startedAt?: string
-        }
-
-        if (
-          parsed.employeeId !== currentEmployeeId ||
-          !parsed.id ||
-          !parsed.startedAt ||
-          Number.isNaN(new Date(parsed.startedAt).getTime())
-        ) {
-          setQuickEntryStartedAt(null)
-          return
-        }
-
-        setQuickEntryStartedAt(parsed.startedAt)
-      } catch {
-        window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
-        setQuickEntryStartedAt(null)
-      }
+      setQuickEntryStartedAt(state.startedAt)
     }
 
     syncQuickEntry()
@@ -88,12 +69,17 @@ export const AppTopbar = ({
     return () => window.clearInterval(timer)
   }, [currentEmployeeId])
 
-  const elapsedLabel = useMemo(() => {
+  const quickEntryBanner = useMemo(() => {
     if (!quickEntryStartedAt || !nowMs) return null
-    const startMs = new Date(quickEntryStartedAt).getTime()
-    if (Number.isNaN(startMs)) return null
-    return formatElapsedTime(nowMs - startMs)
-  }, [nowMs, quickEntryStartedAt])
+    const state = readQuickEntryLocalStateForEmployee(currentEmployeeId)
+    if (!state || state.startedAt !== quickEntryStartedAt) {
+      return null
+    }
+    return {
+      elapsedLabel: formatElapsedTime(quickEntryElapsedMs(state, nowMs)),
+      paused: state.runningSinceMs === null,
+    }
+  }, [currentEmployeeId, nowMs, quickEntryStartedAt])
 
   return (
     <header className="rounded-2xl border border-zinc-800 bg-zinc-900/70 p-4 sm:p-5">
@@ -118,13 +104,13 @@ export const AppTopbar = ({
         </div>
 
         <div className="flex w-full shrink-0 flex-wrap items-center justify-end gap-2 sm:w-auto sm:gap-3">
-          {elapsedLabel ? (
+          {quickEntryBanner ? (
             <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-3 py-1.5 shadow-[0_0_25px_rgba(16,185,129,0.18)] sm:px-4 sm:py-2">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                Running
+                {quickEntryBanner.paused ? 'Pausado' : 'Em andamento'}
               </p>
               <p className="font-mono text-2xl font-bold leading-none text-emerald-200 sm:text-3xl">
-                {elapsedLabel}
+                {quickEntryBanner.elapsedLabel}
               </p>
             </div>
           ) : null}

@@ -12,6 +12,7 @@ type RegisterMiniBoardMobileEntryListProps = {
   issueEntryIds?: Set<string>
   activeEntryId: string | null
   activeEntryElapsedLabel: string | null
+  activeEntryPaused?: boolean
   onEditEntry: (entry: RegisterEntry) => void
   onDeleteEntry: (id: string) => Promise<void>
 }
@@ -21,6 +22,7 @@ export const RegisterMiniBoardMobileEntryList = ({
   issueEntryIds = emptyIssueEntryIds,
   activeEntryId,
   activeEntryElapsedLabel,
+  activeEntryPaused = false,
   onEditEntry,
   onDeleteEntry,
 }: RegisterMiniBoardMobileEntryListProps) => (
@@ -29,6 +31,7 @@ export const RegisterMiniBoardMobileEntryList = ({
       const { durationLabel, timeRangeLabel } = getRegisterEntryRowLabels(entry, {
         activeEntryId,
         activeEntryElapsedLabel,
+        activeEntryPaused,
       })
 
       return (
