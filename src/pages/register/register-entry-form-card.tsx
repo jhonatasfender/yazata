@@ -53,7 +53,9 @@ const RegisterEntryQuickControls = ({
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
           <button
             type="button"
-            onClick={() => (quickEntryPaused ? onResumeQuickEntry() : onPauseQuickEntry())}
+            onClick={() =>
+              quickEntryPaused ? onResumeQuickEntry() : onPauseQuickEntry()
+            }
             className="inline-flex h-[42px] w-full items-center justify-center gap-2 rounded-xl border border-zinc-700 px-4 text-sm font-medium text-zinc-100 transition hover:border-zinc-500 hover:bg-zinc-800 sm:w-auto"
           >
             {quickEntryPaused ? (
@@ -181,8 +183,9 @@ export const RegisterEntryFormCard = ({
         {quickEntryStartedAt ? (
           <p className="mt-3 rounded-lg border border-emerald-800/70 bg-emerald-950/30 px-3 py-2 text-xs text-emerald-200">
             Registro rápido {quickEntryPaused ? 'pausado' : 'em andamento'}. Use{' '}
-            <strong>Pausar</strong> para parar o cronômetro sem fechar o registro. Só é possível
-            salvar após <strong>20 minutos</strong> no cronômetro (pausas não contam).
+            <strong>Pausar</strong> para parar o cronômetro sem fechar o registro. Só é
+            possível salvar após <strong>20 minutos</strong> no cronômetro (pausas não
+            contam).
             {!quickEntryCanFinalize && quickEntryRemainingToFinalizeLabel ? (
               <>
                 {' '}

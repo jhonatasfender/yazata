@@ -7,7 +7,10 @@ import {
   type WorkspaceManagerOption,
 } from './workspace-context-controls'
 import type { ActiveWorkspaceContext } from '../../hooks/use-workspace-context'
-import { quickEntryElapsedMs, readQuickEntryLocalState } from '../../utils/quick-entry-local-state'
+import {
+  quickEntryElapsedMs,
+  readQuickEntryLocalState,
+} from '../../utils/quick-entry-local-state'
 
 export type ManagerOption = WorkspaceManagerOption
 

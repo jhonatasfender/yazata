@@ -11,7 +11,9 @@ export type QuickEntryLocalState = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
-export const parseQuickEntryLocalState = (raw: string | null): QuickEntryLocalState | null => {
+export const parseQuickEntryLocalState = (
+  raw: string | null,
+): QuickEntryLocalState | null => {
   if (!raw) return null
   try {
     const parsed: unknown = JSON.parse(raw)
@@ -25,14 +27,20 @@ export const parseQuickEntryLocalState = (raw: string | null): QuickEntryLocalSt
     }
 
     let accumulatedRunningMs = 0
-    if (typeof parsed.accumulatedRunningMs === 'number' && Number.isFinite(parsed.accumulatedRunningMs)) {
+    if (
+      typeof parsed.accumulatedRunningMs === 'number' &&
+      Number.isFinite(parsed.accumulatedRunningMs)
+    ) {
       accumulatedRunningMs = Math.max(0, Math.floor(parsed.accumulatedRunningMs))
     }
 
     let runningSinceMs: number | null = null
     if (parsed.runningSinceMs === null) {
       runningSinceMs = null
-    } else if (typeof parsed.runningSinceMs === 'number' && Number.isFinite(parsed.runningSinceMs)) {
+    } else if (
+      typeof parsed.runningSinceMs === 'number' &&
+      Number.isFinite(parsed.runningSinceMs)
+    ) {
       runningSinceMs = Math.floor(parsed.runningSinceMs)
     } else {
       const legacyStart = new Date(startedAt).getTime()
@@ -64,7 +72,10 @@ export const clearQuickEntryLocalState = () => {
   window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
 }
 
-export const quickEntryElapsedMs = (state: QuickEntryLocalState, nowMs: number): number => {
+export const quickEntryElapsedMs = (
+  state: QuickEntryLocalState,
+  nowMs: number,
+): number => {
   const base = state.accumulatedRunningMs
   if (state.runningSinceMs === null) return base
   return base + Math.max(0, nowMs - state.runningSinceMs)
@@ -80,7 +91,8 @@ export const pauseQuickEntryState = (
   if (state.runningSinceMs === null) return state
   return {
     ...state,
-    accumulatedRunningMs: state.accumulatedRunningMs + Math.max(0, nowMs - state.runningSinceMs),
+    accumulatedRunningMs:
+      state.accumulatedRunningMs + Math.max(0, nowMs - state.runningSinceMs),
     runningSinceMs: null,
   }
 }

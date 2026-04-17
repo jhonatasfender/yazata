@@ -64,9 +64,8 @@ export const RegisterPage = () => {
   const [editingEntry, setEditingEntry] = useState<EditingEntry | null>(null)
   const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
   const [quickEntryId, setQuickEntryId] = useState<string | null>(null)
-  const [quickEntryLocalState, setQuickEntryLocalState] = useState<QuickEntryLocalState | null>(
-    null,
-  )
+  const [quickEntryLocalState, setQuickEntryLocalState] =
+    useState<QuickEntryLocalState | null>(null)
   const [currentTimeMs, setCurrentTimeMs] = useState<number | null>(null)
   const quickEntryPersistRef = useRef({ description: '', projectId: '' })
   const {
@@ -142,11 +141,15 @@ export const RegisterPage = () => {
     quickEntryLocalState && quickEntryPaused(quickEntryLocalState),
   )
 
-  const quickEntryCanFinalize = quickEntryEffectiveElapsedMs >= QUICK_ENTRY_MIN_FINALIZE_MS
+  const quickEntryCanFinalize =
+    quickEntryEffectiveElapsedMs >= QUICK_ENTRY_MIN_FINALIZE_MS
 
   const quickEntryRemainingToFinalizeLabel = useMemo(() => {
     if (quickEntryCanFinalize) return null
-    const remaining = Math.max(0, QUICK_ENTRY_MIN_FINALIZE_MS - quickEntryEffectiveElapsedMs)
+    const remaining = Math.max(
+      0,
+      QUICK_ENTRY_MIN_FINALIZE_MS - quickEntryEffectiveElapsedMs,
+    )
     return formatElapsedTime(remaining)
   }, [quickEntryCanFinalize, quickEntryEffectiveElapsedMs])
 

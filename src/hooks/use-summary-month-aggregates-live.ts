@@ -3,7 +3,10 @@ import { useSummaryLiveNow } from '../pages/summary-page/summary-live-hooks'
 import type { TimeEntryViewRow } from '../repositories/time-entries-repository'
 import { grossCentsFromElapsedMs } from '../utils/money'
 import { isPersistedQuickEntryInProgress } from '../utils/is-quick-entry-in-progress'
-import { quickEntryElapsedMs, readQuickEntryLocalState } from '../utils/quick-entry-local-state'
+import {
+  quickEntryElapsedMs,
+  readQuickEntryLocalState,
+} from '../utils/quick-entry-local-state'
 import { isWorkDateInYearMonth } from '../utils/summary-year-month'
 import { parseWorkDateTimeLocalMs } from '../utils/time'
 
