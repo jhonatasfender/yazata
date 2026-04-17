@@ -1,5 +1,13 @@
-import { QUICK_ENTRY_IN_PROGRESS_DESCRIPTION } from '../constants/quick-entry'
+import {
+  QUICK_ENTRY_IN_PROGRESS_DESCRIPTION,
+  QUICK_ENTRY_MIN_FINALIZE_MS,
+} from '../constants/quick-entry'
 import { timeStringToTotalSeconds } from './time'
+
+/** Segundos máximos entre início e fim no placeholder enquanto o registro rápido não foi salvo (margem acima do mínimo de cronômetro). */
+const QUICK_ENTRY_PLACEHOLDER_MAX_DELTA_SECONDS = Math.ceil(
+  (QUICK_ENTRY_MIN_FINALIZE_MS + 60_000) / 1000,
+)
 
 type EntrySlice = {
   description: string | null
@@ -16,9 +24,9 @@ export const isPersistedQuickEntryInProgress = (entry: EntrySlice): boolean => {
   if (start === null || end === null || end <= start) return false
 
   const deltaSeconds = end - start
-  if (deltaSeconds > 120) return false
+  if (deltaSeconds > QUICK_ENTRY_PLACEHOLDER_MAX_DELTA_SECONDS) return false
 
-  const maxWorkedForPlaceholder = 120 / 3600
+  const maxWorkedForPlaceholder = QUICK_ENTRY_PLACEHOLDER_MAX_DELTA_SECONDS / 3600
   if (entry.worked_hours > maxWorkedForPlaceholder) return false
 
   return true

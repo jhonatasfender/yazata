@@ -12,6 +12,7 @@ type RegisterMiniBoardProps = {
   error: string | null
   activeEntryId: string | null
   activeEntryElapsedLabel: string | null
+  activeEntryPaused?: boolean
   onEditEntry: (entry: RegisterEntry) => void
   onDeleteEntry: (id: string) => Promise<void>
 }
@@ -23,6 +24,7 @@ export const RegisterMiniBoard = ({
   error,
   activeEntryId,
   activeEntryElapsedLabel,
+  activeEntryPaused = false,
   onEditEntry,
   onDeleteEntry,
 }: RegisterMiniBoardProps) => {
@@ -56,6 +58,7 @@ export const RegisterMiniBoard = ({
             issueEntryIds={issueEntryIds}
             activeEntryId={activeEntryId}
             activeEntryElapsedLabel={activeEntryElapsedLabel}
+            activeEntryPaused={activeEntryPaused}
             onEditEntry={onEditEntry}
             onDeleteEntry={onDeleteEntry}
           />
@@ -64,6 +67,7 @@ export const RegisterMiniBoard = ({
             issueEntryIds={issueEntryIds}
             activeEntryId={activeEntryId}
             activeEntryElapsedLabel={activeEntryElapsedLabel}
+            activeEntryPaused={activeEntryPaused}
             onEditEntry={onEditEntry}
             onDeleteEntry={onDeleteEntry}
           />

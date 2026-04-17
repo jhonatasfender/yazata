@@ -7,7 +7,7 @@ import { confirmDialog } from '../lib/dialog'
 import type { TimeEntryFormValues } from '../schemas/time-entry-schema'
 import {
   QUICK_ENTRY_IN_PROGRESS_DESCRIPTION,
-  QUICK_ENTRY_STORAGE_KEY,
+  QUICK_ENTRY_MIN_FINALIZE_MS,
 } from '../constants/quick-entry'
 import { findTimeEntryOverlap } from '../utils/time-entry-overlap'
 import { today } from '../utils/time'
@@ -15,6 +15,16 @@ import { RegisterEntryFormCard } from './register/register-entry-form-card'
 import { RegisterMiniBoard } from './register/register-mini-board'
 import type { EditingEntry } from './register/register-types'
 import { RegisterUnlinkedState } from './register/register-unlinked-state'
+import {
+  clearQuickEntryLocalState,
+  pauseQuickEntryState,
+  quickEntryElapsedMs,
+  quickEntryPaused,
+  readQuickEntryLocalState,
+  resumeQuickEntryState,
+  type QuickEntryLocalState,
+  writeQuickEntryLocalState,
+} from '../utils/quick-entry-local-state'
 
 const defaultForm = (): TimeEntryFormValues => ({
   workDate: today(),
@@ -54,6 +64,9 @@ export const RegisterPage = () => {
   const [editingEntry, setEditingEntry] = useState<EditingEntry | null>(null)
   const [quickEntryStartedAt, setQuickEntryStartedAt] = useState<string | null>(null)
   const [quickEntryId, setQuickEntryId] = useState<string | null>(null)
+  const [quickEntryLocalState, setQuickEntryLocalState] = useState<QuickEntryLocalState | null>(
+    null,
+  )
   const [currentTimeMs, setCurrentTimeMs] = useState<number | null>(null)
   const quickEntryPersistRef = useRef({ description: '', projectId: '' })
   const {
@@ -81,39 +94,22 @@ export const RegisterPage = () => {
   useEffect(() => {
     if (!employee) return
 
-    const raw = window.localStorage.getItem(QUICK_ENTRY_STORAGE_KEY)
-    if (!raw) return
+    const parsed = readQuickEntryLocalState()
+    if (!parsed || parsed.employeeId !== employee.id) return
 
-    try {
-      const parsed = JSON.parse(raw) as {
-        employeeId?: string
-        id?: string
-        startedAt?: string
-      }
-      if (parsed.employeeId !== employee.id || !parsed.id || !parsed.startedAt) return
-
-      setQuickEntryId(parsed.id)
-      setQuickEntryStartedAt(parsed.startedAt)
-    } catch {
-      window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
-    }
+    setQuickEntryId(parsed.id)
+    setQuickEntryStartedAt(parsed.startedAt)
+    setQuickEntryLocalState(parsed)
   }, [employee])
 
   useEffect(() => {
-    if (!employee || !quickEntryStartedAt || !quickEntryId) return
-
-    window.localStorage.setItem(
-      QUICK_ENTRY_STORAGE_KEY,
-      JSON.stringify({
-        employeeId: employee.id,
-        id: quickEntryId,
-        startedAt: quickEntryStartedAt,
-      }),
-    )
-  }, [employee, quickEntryId, quickEntryStartedAt])
+    if (!employee || !quickEntryLocalState) return
+    if (quickEntryLocalState.employeeId !== employee.id) return
+    writeQuickEntryLocalState(quickEntryLocalState)
+  }, [employee, quickEntryLocalState])
 
   useEffect(() => {
-    if (!quickEntryStartedAt) return
+    if (!quickEntryStartedAt || !quickEntryLocalState) return
 
     setCurrentTimeMs(Date.now())
     const timer = window.setInterval(() => {
@@ -121,22 +117,52 @@ export const RegisterPage = () => {
     }, 1000)
 
     return () => window.clearInterval(timer)
-  }, [quickEntryStartedAt])
+  }, [quickEntryLocalState, quickEntryStartedAt])
 
   const resetQuickEntry = () => {
     setQuickEntryId(null)
     setQuickEntryStartedAt(null)
+    setQuickEntryLocalState(null)
     setCurrentTimeMs(null)
     quickEntryPersistRef.current = { description: '', projectId: '' }
-    window.localStorage.removeItem(QUICK_ENTRY_STORAGE_KEY)
+    clearQuickEntryLocalState()
   }
 
+  const quickEntryEffectiveElapsedMs = useMemo(() => {
+    if (!quickEntryLocalState || !currentTimeMs) return 0
+    return quickEntryElapsedMs(quickEntryLocalState, currentTimeMs)
+  }, [currentTimeMs, quickEntryLocalState])
+
   const quickEntryElapsedLabel = useMemo(() => {
-    if (!quickEntryStartedAt || !currentTimeMs) return null
-    const startedAtMs = new Date(quickEntryStartedAt).getTime()
-    if (Number.isNaN(startedAtMs)) return null
-    return formatElapsedTime(currentTimeMs - startedAtMs)
-  }, [currentTimeMs, quickEntryStartedAt])
+    if (!quickEntryLocalState || !currentTimeMs) return null
+    return formatElapsedTime(quickEntryEffectiveElapsedMs)
+  }, [quickEntryEffectiveElapsedMs, quickEntryLocalState, currentTimeMs])
+
+  const quickEntryPausedActive = Boolean(
+    quickEntryLocalState && quickEntryPaused(quickEntryLocalState),
+  )
+
+  const quickEntryCanFinalize = quickEntryEffectiveElapsedMs >= QUICK_ENTRY_MIN_FINALIZE_MS
+
+  const quickEntryRemainingToFinalizeLabel = useMemo(() => {
+    if (quickEntryCanFinalize) return null
+    const remaining = Math.max(0, QUICK_ENTRY_MIN_FINALIZE_MS - quickEntryEffectiveElapsedMs)
+    return formatElapsedTime(remaining)
+  }, [quickEntryCanFinalize, quickEntryEffectiveElapsedMs])
+
+  const onPauseQuickEntry = () => {
+    setQuickEntryLocalState((prev) => {
+      if (!prev) return prev
+      return pauseQuickEntryState(prev, Date.now())
+    })
+  }
+
+  const onResumeQuickEntry = () => {
+    setQuickEntryLocalState((prev) => {
+      if (!prev) return prev
+      return resumeQuickEntryState(prev, Date.now())
+    })
+  }
 
   const overlapErrorMessage =
     'Já existe outro registro neste dia que cruza esse intervalo de horários.'
@@ -188,7 +214,7 @@ export const RegisterPage = () => {
   }
 
   const onStartQuickEntry = async (draft?: TimeEntryFormValues) => {
-    if (loading || quickEntryStartedAt || quickEntryId) return
+    if (!employee || loading || quickEntryStartedAt || quickEntryId) return
 
     const snapshot = editingEntry ? (draft ?? editingEntry.values) : null
 
@@ -231,10 +257,25 @@ export const RegisterPage = () => {
     }
 
     setQuickEntryId(entryId)
+    const nowMs = Date.now()
+    setQuickEntryLocalState({
+      employeeId: employee.id,
+      id: entryId,
+      startedAt: startedAtIso,
+      accumulatedRunningMs: 0,
+      runningSinceMs: nowMs,
+    })
   }
 
   const onStopQuickEntry = async () => {
     if (!quickEntryStartedAt || !quickEntryId || loading) return
+
+    if (!quickEntryCanFinalize) {
+      setError(
+        `Para evitar registros muito curtos, é preciso acumular pelo menos 20 minutos no cronômetro (contando pausas). Faltam ${quickEntryRemainingToFinalizeLabel ?? '00:00:00'}.`,
+      )
+      return
+    }
 
     const startDate = new Date(quickEntryStartedAt)
     const endDate = new Date()
@@ -357,8 +398,13 @@ export const RegisterPage = () => {
         setFormVersion={setFormVersion}
         quickEntryStartedAt={quickEntryStartedAt}
         quickEntryElapsedLabel={quickEntryElapsedLabel}
+        quickEntryPaused={quickEntryPausedActive}
+        quickEntryCanFinalize={quickEntryCanFinalize}
+        quickEntryRemainingToFinalizeLabel={quickEntryRemainingToFinalizeLabel}
         onStartQuickEntry={onStartQuickEntry}
         onStopQuickEntry={onStopQuickEntry}
+        onPauseQuickEntry={onPauseQuickEntry}
+        onResumeQuickEntry={onResumeQuickEntry}
       />
 
       <RegisterMiniBoard
@@ -368,6 +414,7 @@ export const RegisterPage = () => {
         error={error}
         activeEntryId={quickEntryId}
         activeEntryElapsedLabel={quickEntryElapsedLabel}
+        activeEntryPaused={quickEntryPausedActive}
         onEditEntry={onEditEntry}
         onDeleteEntry={onDeleteEntry}
       />

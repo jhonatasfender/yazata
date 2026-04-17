@@ -26,10 +26,12 @@ export const SummaryRecentEntryDurationCell = ({
       {inProgress ? (
         <span
           className="inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5"
-          title="Em andamento"
+          title={live.state === 'paused' ? 'Pausado' : 'Em andamento'}
         >
-          <span className="text-xs font-medium text-violet-200/80">Em andamento</span>
-          {live.state === 'running' ? (
+          <span className="text-xs font-medium text-violet-200/80">
+            {live.state === 'paused' ? 'Pausado' : 'Em andamento'}
+          </span>
+          {live.state === 'running' || live.state === 'paused' ? (
             <span className="font-mono text-xs tabular-nums text-violet-200">
               {formatElapsedClock(live.elapsedMs)}
             </span>
@@ -50,7 +52,7 @@ type AmountCellProps = {
 }
 
 export const SummaryRecentEntryAmountCell = ({ entry, live }: AmountCellProps) => {
-  if (live.state === 'running') {
+  if (live.state === 'running' || live.state === 'paused') {
     const cents = grossCentsFromElapsedMs(
       live.elapsedMs,
       entry.hourly_rate_cents_snapshot,

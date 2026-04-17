@@ -3,6 +3,7 @@ import { useSummaryLiveNow } from '../pages/summary-page/summary-live-hooks'
 import type { TimeEntryViewRow } from '../repositories/time-entries-repository'
 import { grossCentsFromElapsedMs } from '../utils/money'
 import { isPersistedQuickEntryInProgress } from '../utils/is-quick-entry-in-progress'
+import { quickEntryElapsedMs, readQuickEntryLocalState } from '../utils/quick-entry-local-state'
 import { isWorkDateInYearMonth } from '../utils/summary-year-month'
 import { parseWorkDateTimeLocalMs } from '../utils/time'
 
@@ -15,6 +16,15 @@ export type SummaryEmployeeMonthRow = {
 
 const entryHoursAndCentsLive = (entry: TimeEntryViewRow, nowMs: number) => {
   if (isPersistedQuickEntryInProgress(entry)) {
+    const local = readQuickEntryLocalState()
+    if (local?.id === entry.id) {
+      const elapsed = quickEntryElapsedMs(local, nowMs)
+      return {
+        hours: elapsed / 3_600_000,
+        cents: grossCentsFromElapsedMs(elapsed, entry.hourly_rate_cents_snapshot),
+      }
+    }
+
     const startMs = parseWorkDateTimeLocalMs(entry.work_date, entry.start_time)
     if (startMs !== null) {
       const elapsed = Math.max(0, nowMs - startMs)
