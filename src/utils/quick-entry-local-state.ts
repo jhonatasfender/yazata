@@ -11,6 +11,15 @@ export type QuickEntryLocalState = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
 
+const isValidQuickEntryCoreFields = (
+  employeeId: string,
+  id: string,
+  startedAt: string,
+): boolean => {
+  if (!employeeId || !id || !startedAt) return false
+  return !Number.isNaN(new Date(startedAt).getTime())
+}
+
 export const parseQuickEntryLocalState = (
   raw: string | null,
 ): QuickEntryLocalState | null => {
@@ -22,7 +31,7 @@ export const parseQuickEntryLocalState = (
     const employeeId = typeof parsed.employeeId === 'string' ? parsed.employeeId : ''
     const id = typeof parsed.id === 'string' ? parsed.id : ''
     const startedAt = typeof parsed.startedAt === 'string' ? parsed.startedAt : ''
-    if (!employeeId || !id || !startedAt || Number.isNaN(new Date(startedAt).getTime())) {
+    if (!isValidQuickEntryCoreFields(employeeId, id, startedAt)) {
       return null
     }
 
@@ -62,6 +71,26 @@ export const parseQuickEntryLocalState = (
 export const readQuickEntryLocalState = (): QuickEntryLocalState | null => {
   if (typeof window === 'undefined') return null
   return parseQuickEntryLocalState(window.localStorage.getItem(QUICK_ENTRY_STORAGE_KEY))
+}
+
+export const readQuickEntryLocalStateForEmployee = (
+  employmentContractId: string | null | undefined,
+): QuickEntryLocalState | null => {
+  if (!employmentContractId) return null
+  const state = readQuickEntryLocalState()
+  if (!state || state.employeeId !== employmentContractId) return null
+  return state
+}
+
+export const readQuickEntryLocalStateForEntry = (
+  entryId: string,
+  employmentContractId: string,
+): QuickEntryLocalState | null => {
+  const state = readQuickEntryLocalState()
+  if (!state) return null
+  if (state.id !== entryId) return null
+  if (state.employeeId !== employmentContractId) return null
+  return state
 }
 
 export const writeQuickEntryLocalState = (state: QuickEntryLocalState) => {

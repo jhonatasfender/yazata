@@ -9,7 +9,7 @@ import {
 import type { ActiveWorkspaceContext } from '../../hooks/use-workspace-context'
 import {
   quickEntryElapsedMs,
-  readQuickEntryLocalState,
+  readQuickEntryLocalStateForEmployee,
 } from '../../utils/quick-entry-local-state'
 
 export type ManagerOption = WorkspaceManagerOption
@@ -50,19 +50,13 @@ export const AppTopbar = ({
 
   useEffect(() => {
     const syncQuickEntry = () => {
-      const parsed = readQuickEntryLocalState()
-      if (
-        !parsed ||
-        parsed.employeeId !== currentEmployeeId ||
-        !parsed.id ||
-        !parsed.startedAt ||
-        Number.isNaN(new Date(parsed.startedAt).getTime())
-      ) {
+      const state = readQuickEntryLocalStateForEmployee(currentEmployeeId)
+      if (!state) {
         setQuickEntryStartedAt(null)
         return
       }
 
-      setQuickEntryStartedAt(parsed.startedAt)
+      setQuickEntryStartedAt(state.startedAt)
     }
 
     syncQuickEntry()
@@ -77,17 +71,13 @@ export const AppTopbar = ({
 
   const quickEntryBanner = useMemo(() => {
     if (!quickEntryStartedAt || !nowMs) return null
-    const parsed = readQuickEntryLocalState()
-    if (
-      !parsed ||
-      parsed.employeeId !== currentEmployeeId ||
-      parsed.startedAt !== quickEntryStartedAt
-    ) {
+    const state = readQuickEntryLocalStateForEmployee(currentEmployeeId)
+    if (!state || state.startedAt !== quickEntryStartedAt) {
       return null
     }
     return {
-      elapsedLabel: formatElapsedTime(quickEntryElapsedMs(parsed, nowMs)),
-      paused: parsed.runningSinceMs === null,
+      elapsedLabel: formatElapsedTime(quickEntryElapsedMs(state, nowMs)),
+      paused: state.runningSinceMs === null,
     }
   }, [currentEmployeeId, nowMs, quickEntryStartedAt])
 

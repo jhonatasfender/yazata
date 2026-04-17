@@ -5,7 +5,7 @@ import { grossCentsFromElapsedMs } from '../utils/money'
 import { isPersistedQuickEntryInProgress } from '../utils/is-quick-entry-in-progress'
 import {
   quickEntryElapsedMs,
-  readQuickEntryLocalState,
+  readQuickEntryLocalStateForEntry,
 } from '../utils/quick-entry-local-state'
 import { isWorkDateInYearMonth } from '../utils/summary-year-month'
 import { parseWorkDateTimeLocalMs } from '../utils/time'
@@ -19,8 +19,8 @@ export type SummaryEmployeeMonthRow = {
 
 const entryHoursAndCentsLive = (entry: TimeEntryViewRow, nowMs: number) => {
   if (isPersistedQuickEntryInProgress(entry)) {
-    const local = readQuickEntryLocalState()
-    if (local?.id === entry.id) {
+    const local = readQuickEntryLocalStateForEntry(entry.id, entry.employment_contract_id)
+    if (local) {
       const elapsed = quickEntryElapsedMs(local, nowMs)
       return {
         hours: elapsed / 3_600_000,

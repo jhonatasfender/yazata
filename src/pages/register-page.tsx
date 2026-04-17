@@ -20,7 +20,7 @@ import {
   pauseQuickEntryState,
   quickEntryElapsedMs,
   quickEntryPaused,
-  readQuickEntryLocalState,
+  readQuickEntryLocalStateForEmployee,
   resumeQuickEntryState,
   type QuickEntryLocalState,
   writeQuickEntryLocalState,
@@ -93,12 +93,12 @@ export const RegisterPage = () => {
   useEffect(() => {
     if (!employee) return
 
-    const parsed = readQuickEntryLocalState()
-    if (!parsed || parsed.employeeId !== employee.id) return
+    const state = readQuickEntryLocalStateForEmployee(employee.id)
+    if (!state) return
 
-    setQuickEntryId(parsed.id)
-    setQuickEntryStartedAt(parsed.startedAt)
-    setQuickEntryLocalState(parsed)
+    setQuickEntryId(state.id)
+    setQuickEntryStartedAt(state.startedAt)
+    setQuickEntryLocalState(state)
   }, [employee])
 
   useEffect(() => {

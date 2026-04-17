@@ -5,7 +5,7 @@ import { isPersistedQuickEntryInProgress } from '../utils/is-quick-entry-in-prog
 import {
   quickEntryElapsedMs,
   quickEntryPaused,
-  readQuickEntryLocalState,
+  readQuickEntryLocalStateForEntry,
 } from '../utils/quick-entry-local-state'
 import { parseWorkDateTimeLocalMs } from '../utils/time'
 
@@ -28,8 +28,8 @@ export const useSummaryEntryInProgressLive = (
   if (!inProgress) return { state: 'idle' }
   if (startMs === null) return { state: 'running-no-parse' }
 
-  const local = readQuickEntryLocalState()
-  if (local?.id === entry.id) {
+  const local = readQuickEntryLocalStateForEntry(entry.id, entry.employment_contract_id)
+  if (local) {
     const elapsedMs = quickEntryElapsedMs(local, nowMs)
     return quickEntryPaused(local)
       ? { state: 'paused', elapsedMs }
