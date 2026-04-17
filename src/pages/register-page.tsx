@@ -275,7 +275,7 @@ export const RegisterPage = () => {
 
     if (!quickEntryCanFinalize) {
       setError(
-        `Para evitar registros muito curtos, é preciso acumular pelo menos 20 minutos no cronômetro (contando pausas). Faltam ${quickEntryRemainingToFinalizeLabel ?? '00:00:00'}.`,
+        `Para evitar registros muito curtos, é preciso acumular pelo menos 20 minutos no cronômetro (pausas não contam). Faltam ${quickEntryRemainingToFinalizeLabel ?? '00:00:00'}.`,
       )
       return
     }
