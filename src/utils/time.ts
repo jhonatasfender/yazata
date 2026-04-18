@@ -26,7 +26,6 @@ export const formatWorkDate = (workDate: string) => {
   return `${day}/${month}/${year.slice(-2)}`
 }
 
-/** Human-readable duration from a whole-second total (d/h/m; optional s). */
 export const formatDurationFromTotalSeconds = (
   totalSeconds: number,
   options: { includeSeconds: boolean; zeroLabel: string },
