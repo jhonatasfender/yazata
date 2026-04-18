@@ -11,6 +11,7 @@ import {
   quickEntryElapsedMs,
   readQuickEntryLocalStateForEmployee,
 } from '../../utils/quick-entry-local-state'
+import { formatElapsedClock } from '../../utils/time'
 
 export type ManagerOption = WorkspaceManagerOption
 
@@ -24,14 +25,6 @@ type AppTopbarProps = {
   hasManagerRole: boolean
   activeWorkspaceContext: ActiveWorkspaceContext
   onSelectWorkspaceContext: (context: ActiveWorkspaceContext) => void
-}
-
-const formatElapsedTime = (elapsedMs: number) => {
-  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
 export const AppTopbar = ({
@@ -76,7 +69,7 @@ export const AppTopbar = ({
       return null
     }
     return {
-      elapsedLabel: formatElapsedTime(quickEntryElapsedMs(state, nowMs)),
+      elapsedLabel: formatElapsedClock(quickEntryElapsedMs(state, nowMs)),
       paused: state.runningSinceMs === null,
     }
   }, [currentEmployeeId, nowMs, quickEntryStartedAt])

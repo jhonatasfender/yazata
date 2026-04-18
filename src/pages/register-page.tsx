@@ -10,7 +10,7 @@ import {
   QUICK_ENTRY_MIN_FINALIZE_MS,
 } from '../constants/quick-entry'
 import { findTimeEntryOverlap } from '../utils/time-entry-overlap'
-import { today } from '../utils/time'
+import { formatElapsedClock, today } from '../utils/time'
 import { RegisterEntryFormCard } from './register/register-entry-form-card'
 import { RegisterMiniBoard } from './register/register-mini-board'
 import type { EditingEntry } from './register/register-types'
@@ -47,14 +47,6 @@ const toLocalTime = (value: Date, includeSeconds = false) => {
   if (!includeSeconds) return `${hours}:${minutes}`
   const seconds = String(value.getSeconds()).padStart(2, '0')
   return `${hours}:${minutes}:${seconds}`
-}
-
-const formatElapsedTime = (elapsedMs: number) => {
-  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
 }
 
 export const RegisterPage = () => {
@@ -134,7 +126,7 @@ export const RegisterPage = () => {
 
   const quickEntryElapsedLabel = useMemo(() => {
     if (!quickEntryLocalState || !currentTimeMs) return null
-    return formatElapsedTime(quickEntryEffectiveElapsedMs)
+    return formatElapsedClock(quickEntryEffectiveElapsedMs)
   }, [quickEntryEffectiveElapsedMs, quickEntryLocalState, currentTimeMs])
 
   const quickEntryPausedActive = Boolean(
@@ -150,7 +142,7 @@ export const RegisterPage = () => {
       0,
       QUICK_ENTRY_MIN_FINALIZE_MS - quickEntryEffectiveElapsedMs,
     )
-    return formatElapsedTime(remaining)
+    return formatElapsedClock(remaining)
   }, [quickEntryCanFinalize, quickEntryEffectiveElapsedMs])
 
   const onPauseQuickEntry = () => {

@@ -26,18 +26,36 @@ export const formatWorkDate = (workDate: string) => {
   return `${day}/${month}/${year.slice(-2)}`
 }
 
+/** Human-readable duration from a whole-second total (d/h/m; optional s). */
+export const formatDurationFromTotalSeconds = (
+  totalSeconds: number,
+  options: { includeSeconds: boolean; zeroLabel: string },
+): string => {
+  const s = Math.max(0, Math.floor(totalSeconds))
+  const days = Math.floor(s / 86_400)
+  let rest = s % 86_400
+  const hours = Math.floor(rest / 3600)
+  rest %= 3600
+  const minutes = Math.floor(rest / 60)
+  const seconds = rest % 60
+
+  const parts: string[] = []
+  if (days > 0) parts.push(`${days}d`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+  if (options.includeSeconds && seconds > 0) parts.push(`${seconds}s`)
+
+  if (parts.length > 0) return parts.join(' ')
+  if (seconds > 0) return `${seconds}s`
+  return options.zeroLabel
+}
+
 export const formatWorkedTime = (workedHours: number) => {
   const totalSeconds = Math.max(0, Math.round(workedHours * 3600))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    if (minutes > 0) return `${hours}h ${minutes}m`
-    return `${hours}h`
-  }
-  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-  return `${seconds}s`
+  return formatDurationFromTotalSeconds(totalSeconds, {
+    includeSeconds: true,
+    zeroLabel: '0s',
+  })
 }
 
 export const timeStringToTotalSeconds = (value: string): number | null => {
@@ -66,37 +84,18 @@ export const formatDurationBetweenTimes = (
   }
 
   const totalSeconds = endSeconds - startSeconds
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
-
-  if (hours > 0) {
-    if (minutes > 0 && seconds > 0) return `${hours}h ${minutes}m ${seconds}s`
-    if (minutes > 0) return `${hours}h ${minutes}m`
-    if (seconds > 0) return `${hours}h ${seconds}s`
-    return `${hours}h`
-  }
-  if (minutes > 0) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-  return `${seconds}s`
+  return formatDurationFromTotalSeconds(totalSeconds, {
+    includeSeconds: true,
+    zeroLabel: '0s',
+  })
 }
 
 export const formatHoursAndMinutes = (workedHours: number) => {
   const totalSeconds = Math.max(0, Math.round(workedHours * 3600))
-  const days = Math.floor(totalSeconds / 86_400)
-  let rest = totalSeconds % 86_400
-  const hours = Math.floor(rest / 3600)
-  rest %= 3600
-  const minutes = Math.floor(rest / 60)
-  const seconds = rest % 60
-
-  const parts: string[] = []
-  if (days > 0) parts.push(`${days}d`)
-  if (hours > 0) parts.push(`${hours}h`)
-  if (minutes > 0) parts.push(`${minutes}m`)
-
-  if (parts.length > 0) return parts.join(' ')
-  if (seconds > 0) return `${seconds}s`
-  return '0m'
+  return formatDurationFromTotalSeconds(totalSeconds, {
+    includeSeconds: false,
+    zeroLabel: '0m',
+  })
 }
 
 export const parseWorkDateTimeLocalMs = (
