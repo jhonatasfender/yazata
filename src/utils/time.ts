@@ -81,12 +81,22 @@ export const formatDurationBetweenTimes = (
 }
 
 export const formatHoursAndMinutes = (workedHours: number) => {
-  const totalMinutes = Math.max(0, Math.round(workedHours * 60))
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
+  const totalSeconds = Math.max(0, Math.round(workedHours * 3600))
+  const days = Math.floor(totalSeconds / 86_400)
+  let rest = totalSeconds % 86_400
+  const hours = Math.floor(rest / 3600)
+  rest %= 3600
+  const minutes = Math.floor(rest / 60)
+  const seconds = rest % 60
 
-  if (hours === 0) return `${minutes}m`
-  return `${hours}h ${minutes}m`
+  const parts: string[] = []
+  if (days > 0) parts.push(`${days}d`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+
+  if (parts.length > 0) return parts.join(' ')
+  if (seconds > 0) return `${seconds}s`
+  return '0m'
 }
 
 export const parseWorkDateTimeLocalMs = (
