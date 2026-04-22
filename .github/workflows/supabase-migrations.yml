@@ -1,0 +1,47 @@
+# Applies SQL migrations from supabase/migrations/ to the linked production database.
+#
+# Required GitHub repository secret:
+#   SUPABASE_DB_URL — same value as in .env for `npm run db:push:url`
+#   (PostgreSQL URL, typically direct host db.<project-ref>.supabase.co:5432/postgres)
+#
+# Triggers: pushes to main that touch supabase/migrations/, or manual run.
+
+name: Supabase migrations
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+
+concurrency:
+  group: supabase-migrations-main
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.93.1
+
+      - name: Check SUPABASE_DB_URL secret
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo '::error::Missing repository secret SUPABASE_DB_URL. Add it under Settings → Secrets and variables → Actions.'
+            exit 1
+          fi
+
+      - name: Apply pending migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: supabase db push --db-url "$SUPABASE_DB_URL" --yes
