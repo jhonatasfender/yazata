@@ -6,6 +6,7 @@ import {
   SummaryRecentEntryDurationCell,
   SummaryRecentEntryEndCell,
 } from './summary-recent-entry-in-progress'
+import { employeeDisplayLabel } from '../../utils/employee-display-label'
 
 const emptyIssueEntryIds = new Set<string>()
 
@@ -36,7 +37,14 @@ const SummaryRecentEntryCardMobile = ({
           </p>
           {showEmployeeColumn ? (
             <p className="mt-1 truncate text-xs text-zinc-400">
-              {entry.employee?.employee_email ?? '—'}
+              <span className="font-medium text-zinc-200">
+                {employeeDisplayLabel(entry.employee)}
+              </span>
+              {entry.employee?.employee_display_name?.trim() ? (
+                <span className="mt-0.5 block truncate text-zinc-500">
+                  {entry.employee.employee_email}
+                </span>
+              ) : null}
             </p>
           ) : null}
           <p className="mt-1 font-mono text-xs text-zinc-400">

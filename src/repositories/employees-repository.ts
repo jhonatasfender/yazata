@@ -25,6 +25,7 @@ export class EmployeesRepository {
           company_tax_profile_id,
           employee_user_id,
           employee_email,
+          employee_display_name,
           hourly_rate_cents,
           status,
           starts_at,
@@ -60,6 +61,10 @@ export class EmployeesRepository {
               ? null
               : String(raw.employee_user_id),
           employee_email: String(raw.employee_email ?? ''),
+          employee_display_name:
+            raw.employee_display_name === null || raw.employee_display_name === undefined
+              ? null
+              : String(raw.employee_display_name),
           hourly_rate_cents: Number(raw.hourly_rate_cents ?? 0),
           status: raw.status as EmployeeRow['status'],
           starts_at:
@@ -93,6 +98,7 @@ export class EmployeesRepository {
     managerProfileId: string
     email: string
     hourlyRateCents: number
+    employeeDisplayName?: string | null
   }): Promise<void> {
     const normalizedEmail = params.email.trim().toLowerCase()
 
@@ -123,11 +129,16 @@ export class EmployeesRepository {
 
     if (deletePendingError) throw new Error(deletePendingError.message)
 
+    const displayName = params.employeeDisplayName?.trim()
+      ? params.employeeDisplayName.trim()
+      : null
+
     const { error } = await this.client.from('employment_contracts').insert({
       manager_profile_id: params.managerProfileId,
       company_tax_profile_id: taxProfile?.id ?? null,
       employee_email: normalizedEmail,
       employee_user_id: null,
+      employee_display_name: displayName,
       hourly_rate_cents: params.hourlyRateCents,
       status: 'pending',
     })
@@ -139,12 +150,19 @@ export class EmployeesRepository {
     contractId: string
     managerProfileId: string
     hourlyRateCents: number
+    employeeDisplayName?: string | null
   }): Promise<void> {
+    const patch: { hourly_rate_cents: number; employee_display_name?: string | null } = {
+      hourly_rate_cents: params.hourlyRateCents,
+    }
+    if (params.employeeDisplayName !== undefined) {
+      const trimmed = params.employeeDisplayName?.trim()
+      patch.employee_display_name = trimmed ? trimmed : null
+    }
+
     const { error } = await this.client
       .from('employment_contracts')
-      .update({
-        hourly_rate_cents: params.hourlyRateCents,
-      })
+      .update(patch)
       .eq('id', params.contractId)
       .eq('manager_profile_id', params.managerProfileId)
 

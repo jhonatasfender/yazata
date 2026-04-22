@@ -1,3 +1,4 @@
+import { useUser } from '@clerk/react'
 import { useEffect, useMemo, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { AppTopbar } from './layout/app-topbar'
@@ -14,6 +15,7 @@ import { WorkspaceErrorState } from './workspace-error-state'
 const SIDEBAR_PREF_KEY = 'tracker-sidebar-expanded'
 
 export const AppLayout = () => {
+  const { user } = useUser()
   const {
     loading,
     error,
@@ -61,6 +63,20 @@ export const AppLayout = () => {
       })),
     [managers],
   )
+
+  const employeeWorkspaceSubtitle = useMemo(() => {
+    if (activeWorkspaceContext !== 'employee' || !employee) return null
+    const fromContract = employee.employee_display_name?.trim()
+    if (fromContract) return fromContract
+    const full = user?.fullName?.trim()
+    if (full) return full
+    const composed = [user?.firstName, user?.lastName]
+      .filter((part): part is string => Boolean(part?.trim()))
+      .join(' ')
+      .trim()
+    if (composed) return composed
+    return employee.employee_email?.trim() || null
+  }, [activeWorkspaceContext, employee, user])
 
   const workspaceControlProps = {
     hasEmployeeRole: Boolean(employee),
@@ -132,6 +148,7 @@ export const AppLayout = () => {
             <AppTopbar
               onOpenMenu={() => setMobileOpen(true)}
               currentEmployeeId={employee?.id ?? null}
+              workspaceEmployeeSubtitle={employeeWorkspaceSubtitle}
               managerOptions={managerOptions}
               selectedManagerProfileId={selectedManagerProfileId}
               onSelectManagerProfile={setSelectedManagerProfileId}

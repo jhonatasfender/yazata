@@ -13,6 +13,7 @@ import { parseWorkDateTimeLocalMs } from '../utils/time'
 export type SummaryEmployeeMonthRow = {
   employmentContractId: string
   email: string
+  displayName: string | null
   hours: number
   amountCents: number
 }
@@ -54,7 +55,10 @@ export const useSummaryMonthAggregatesLive = (
   return useMemo(() => {
     let totalHours = 0
     let totalCents = 0
-    const byContract = new Map<string, { email: string; hours: number; cents: number }>()
+    const byContract = new Map<
+      string,
+      { email: string; displayName: string | null; hours: number; cents: number }
+    >()
 
     for (const entry of monthEntries) {
       const { hours, cents } = entryHoursAndCentsLive(entry, nowMs)
@@ -64,12 +68,14 @@ export const useSummaryMonthAggregatesLive = (
       const cid = entry.employment_contract_id
       const email =
         entry.employee?.employee_email?.trim() || `Contrato ${cid.slice(0, 8)}…`
+      const displayName = entry.employee?.employee_display_name?.trim() || null
       const cur = byContract.get(cid)
       if (cur) {
         cur.hours += hours
         cur.cents += cents
+        if (!cur.displayName && displayName) cur.displayName = displayName
       } else {
-        byContract.set(cid, { email, hours, cents })
+        byContract.set(cid, { email, displayName, hours, cents })
       }
     }
 
@@ -77,6 +83,7 @@ export const useSummaryMonthAggregatesLive = (
       .map(([employmentContractId, v]) => ({
         employmentContractId,
         email: v.email,
+        displayName: v.displayName,
         hours: v.hours,
         amountCents: v.cents,
       }))

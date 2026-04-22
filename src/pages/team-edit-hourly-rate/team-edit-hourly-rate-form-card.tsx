@@ -4,15 +4,16 @@ import { Input } from '../../components/forms/input'
 import { SubmitButton } from '../../components/forms/submit-button'
 import type { EmployeeRow } from '../../lib/supabase'
 import {
-  hourlyRateInlineSchema,
-  type HourlyRateInlineFormValues,
-} from '../../schemas/hourly-rate-inline-schema'
+  teamEmployeeContractEditSchema,
+  type TeamEmployeeContractEditFormValues,
+} from '../../schemas/team-employee-contract-edit-schema'
 import { centsToInputValue, formatBRL } from '../../utils/money'
+import { employeeDisplayLabel } from '../../utils/employee-display-label'
 
 type TeamEditHourlyRateFormCardProps = {
   selectedEmployee: EmployeeRow
   error: string | null
-  onUpdate: (values: HourlyRateInlineFormValues) => Promise<void>
+  onUpdate: (values: TeamEmployeeContractEditFormValues) => Promise<void>
 }
 
 export const TeamEditHourlyRateFormCard = ({
@@ -39,7 +40,10 @@ export const TeamEditHourlyRateFormCard = ({
     <div className="mt-5 grid gap-3 rounded-xl border border-zinc-800 bg-zinc-950/70 p-4 md:grid-cols-2">
       <div>
         <p className="text-xs uppercase tracking-wide text-zinc-500">Employee</p>
-        <p className="mt-1 break-all text-sm font-medium text-zinc-100">
+        <p className="mt-1 text-sm font-medium text-zinc-100">
+          {employeeDisplayLabel(selectedEmployee)}
+        </p>
+        <p className="mt-1 break-all text-xs text-zinc-500">
           {selectedEmployee.employee_email}
         </p>
       </div>
@@ -59,14 +63,22 @@ export const TeamEditHourlyRateFormCard = ({
       </p>
     ) : null}
 
-    <Form<HourlyRateInlineFormValues>
+    <Form<TeamEmployeeContractEditFormValues>
+      key={selectedEmployee.id}
       className="mt-5 max-w-2xl space-y-3"
-      schema={hourlyRateInlineSchema}
+      schema={teamEmployeeContractEditSchema}
       defaultValues={{
         hourlyRate: centsToInputValue(selectedEmployee.hourly_rate_cents),
+        displayName: selectedEmployee.employee_display_name ?? '',
       }}
       onSubmit={onUpdate}
     >
+      <Input
+        type="text"
+        name="displayName"
+        label="Display name"
+        placeholder="e.g. Maria Silva"
+      />
       <div className="flex flex-col gap-3 md:flex-row md:items-end">
         <div className="flex-1">
           <Input

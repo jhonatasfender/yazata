@@ -11,6 +11,7 @@ export type TimeEntryMutationInput = {
 export type TimeEntryEmployeeRef = {
   id: string
   employee_email: string
+  employee_display_name: string | null
 }
 
 export type TimeEntryProjectRef = {

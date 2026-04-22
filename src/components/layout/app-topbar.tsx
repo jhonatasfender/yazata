@@ -18,6 +18,7 @@ export type ManagerOption = WorkspaceManagerOption
 type AppTopbarProps = {
   onOpenMenu: () => void
   currentEmployeeId: string | null
+  workspaceEmployeeSubtitle?: string | null
   managerOptions: ManagerOption[]
   selectedManagerProfileId: string | null
   onSelectManagerProfile: (id: string) => void
@@ -30,6 +31,7 @@ type AppTopbarProps = {
 export const AppTopbar = ({
   onOpenMenu,
   currentEmployeeId,
+  workspaceEmployeeSubtitle = null,
   managerOptions,
   selectedManagerProfileId,
   onSelectManagerProfile,
@@ -93,6 +95,11 @@ export const AppTopbar = ({
             <h1 className="text-xl font-semibold leading-tight sm:text-2xl">
               Team time tracking
             </h1>
+            {workspaceEmployeeSubtitle ? (
+              <p className="mt-1 truncate text-sm text-zinc-400">
+                {workspaceEmployeeSubtitle}
+              </p>
+            ) : null}
           </div>
         </div>
 

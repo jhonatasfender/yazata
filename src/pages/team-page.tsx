@@ -5,6 +5,7 @@ import type { AppLayoutContext } from '../components/app-layout'
 import { useEmployees } from '../hooks/use-employees'
 import { confirmDialog, showAlertDialog } from '../lib/dialog'
 import { formatBRL } from '../utils/money'
+import { employeeDisplayLabel } from '../utils/employee-display-label'
 
 export const TeamPage = () => {
   const { manager, employee, activeWorkspaceContext } =
@@ -96,6 +97,7 @@ export const TeamPage = () => {
           <table className="min-w-full border-collapse text-sm">
             <thead className="bg-zinc-950 text-left text-zinc-300">
               <tr>
+                <th className="px-4 py-3 font-medium">Name</th>
                 <th className="px-4 py-3 font-medium">Email</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Hourly rate</th>
@@ -105,7 +107,7 @@ export const TeamPage = () => {
             <tbody className="divide-y divide-zinc-800 bg-zinc-900">
               {employees.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-4 text-zinc-400" colSpan={4}>
+                  <td className="px-4 py-4 text-zinc-400" colSpan={5}>
                     No employees yet.
                   </td>
                 </tr>
@@ -113,6 +115,9 @@ export const TeamPage = () => {
                 employees.map((currentEmployee) => (
                   <tr key={currentEmployee.id}>
                     <td className="px-4 py-3 text-zinc-100">
+                      {employeeDisplayLabel(currentEmployee)}
+                    </td>
+                    <td className="max-w-[12rem] truncate px-4 py-3 text-zinc-400">
                       {currentEmployee.employee_email}
                     </td>
                     <td className="px-4 py-3 text-zinc-400">

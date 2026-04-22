@@ -31,6 +31,7 @@ export type EmploymentContractRow = {
   company_tax_profile_id: string | null
   employee_user_id: string | null
   employee_email: string
+  employee_display_name: string | null
   hourly_rate_cents: number
   status: 'pending' | 'active' | 'inactive'
   starts_at: string | null

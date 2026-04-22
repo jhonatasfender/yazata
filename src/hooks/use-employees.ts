@@ -15,6 +15,7 @@ type UseEmployeesOptions = {
 type InviteEmployeeInput = {
   email: string
   hourlyRateCents: number
+  employeeDisplayName?: string
 }
 
 export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
@@ -41,7 +42,7 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
   }, [enabled, managerId, repository])
 
   const inviteEmployee = useCallback(
-    async ({ email, hourlyRateCents }: InviteEmployeeInput) => {
+    async ({ email, hourlyRateCents, employeeDisplayName }: InviteEmployeeInput) => {
       if (!managerId) return false
 
       const normalizedEmail = email.trim().toLowerCase()
@@ -58,6 +59,7 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
           managerProfileId: managerId,
           email: normalizedEmail,
           hourlyRateCents,
+          employeeDisplayName: employeeDisplayName ?? null,
         })
         await loadEmployees()
         return true
@@ -71,7 +73,11 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
   )
 
   const updateHourlyRate = useCallback(
-    async (contractId: string, hourlyRateCents: number) => {
+    async (
+      contractId: string,
+      hourlyRateCents: number,
+      employeeDisplayName?: string | null,
+    ) => {
       if (!managerId) return false
 
       setError(null)
@@ -81,6 +87,7 @@ export const useEmployees = ({ enabled, managerId }: UseEmployeesOptions) => {
           contractId,
           managerProfileId: managerId,
           hourlyRateCents,
+          employeeDisplayName,
         })
         await loadEmployees()
         return true

@@ -72,6 +72,7 @@ export class WorkspaceRepository {
           company_tax_profile_id,
           employee_user_id,
           employee_email,
+          employee_display_name,
           hourly_rate_cents,
           status,
           starts_at,
@@ -110,6 +111,10 @@ export class WorkspaceRepository {
           ? null
           : String(row.employee_user_id),
       employee_email: String(row.employee_email ?? ''),
+      employee_display_name:
+        row.employee_display_name === null || row.employee_display_name === undefined
+          ? null
+          : String(row.employee_display_name),
       hourly_rate_cents: Number(row.hourly_rate_cents ?? 0),
       status: row.status as EmployeeRow['status'],
       starts_at:

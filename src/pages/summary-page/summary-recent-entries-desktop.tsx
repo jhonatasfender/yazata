@@ -6,6 +6,7 @@ import {
   SummaryRecentEntryDurationCell,
   SummaryRecentEntryEndCell,
 } from './summary-recent-entry-in-progress'
+import { employeeDisplayLabel } from '../../utils/employee-display-label'
 
 const emptyIssueEntryIds = new Set<string>()
 
@@ -30,8 +31,15 @@ const SummaryRecentEntryRowDesktop = ({
   return (
     <tr className="border-b border-zinc-800/80 transition-colors last:border-0 hover:bg-zinc-900/50">
       {showEmployeeColumn ? (
-        <td className="whitespace-nowrap px-3 py-2.5 text-zinc-400">
-          {entry.employee?.employee_email ?? '-'}
+        <td className="max-w-[14rem] px-3 py-2.5 text-zinc-300">
+          <span className="block truncate font-medium text-zinc-100">
+            {employeeDisplayLabel(entry.employee)}
+          </span>
+          {entry.employee?.employee_display_name?.trim() ? (
+            <span className="mt-0.5 block truncate text-xs text-zinc-500">
+              {entry.employee.employee_email}
+            </span>
+          ) : null}
         </td>
       ) : null}
       <td className="whitespace-nowrap px-3 py-2.5">{formatWorkDate(entry.work_date)}</td>
@@ -74,7 +82,7 @@ export const SummaryRecentEntriesDesktop = ({
         <thead>
           <tr className="border-b border-zinc-800 text-xs uppercase tracking-wide text-zinc-500">
             {showEmployeeColumn ? (
-              <th className="whitespace-nowrap px-3 py-2.5 font-medium">Employee</th>
+              <th className="whitespace-nowrap px-3 py-2.5 font-medium">Funcionário</th>
             ) : null}
             <th className="whitespace-nowrap px-3 py-2.5 font-medium">Date</th>
             <th className="whitespace-nowrap px-3 py-2.5 font-medium">Start</th>

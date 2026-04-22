@@ -21,7 +21,7 @@ export const TeamInvitePage = () => {
     managerId: manager?.id,
   })
 
-  const onInvite = async ({ email, hourlyRate }: TeamInviteFormValues) => {
+  const onInvite = async ({ email, hourlyRate, displayName }: TeamInviteFormValues) => {
     let hourlyRateCents = 0
 
     try {
@@ -38,6 +38,7 @@ export const TeamInvitePage = () => {
     const created = await inviteEmployee({
       email,
       hourlyRateCents,
+      employeeDisplayName: displayName,
     })
 
     if (!created) return
@@ -79,13 +80,13 @@ export const TeamInvitePage = () => {
           </Link>
         </div>
         <p className="mt-2 text-sm text-zinc-400">
-          Invite by email and set an hourly rate.
+          Invite by email, optionally add a display name, and set an hourly rate.
         </p>
 
         <Form<TeamInviteFormValues>
-          className="mt-4 grid gap-3 md:grid-cols-3"
+          className="mt-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4"
           schema={teamInviteSchema}
-          defaultValues={{ email: '', hourlyRate: '25.00' }}
+          defaultValues={{ email: '', displayName: '', hourlyRate: '25.00' }}
           onSubmit={onInvite}
         >
           <Input
@@ -96,13 +97,19 @@ export const TeamInvitePage = () => {
           />
           <Input
             type="text"
+            name="displayName"
+            label="Name (optional)"
+            placeholder="e.g. Maria Silva"
+          />
+          <Input
+            type="text"
             name="hourlyRate"
             label="Hourly rate"
             placeholder="e.g. 25.00"
           />
           <SubmitButton
             loadingText="Saving..."
-            className="h-10 rounded-lg px-6 md:w-auto md:self-end"
+            className="h-10 rounded-lg px-6 md:col-span-2 md:w-auto md:self-end lg:col-span-1"
           >
             Add employee
           </SubmitButton>

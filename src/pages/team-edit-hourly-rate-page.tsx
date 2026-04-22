@@ -3,7 +3,7 @@ import { ManagerWorkspaceRequired } from '../components/manager-workspace-requir
 import type { AppLayoutContext } from '../components/app-layout'
 import { useEmployees } from '../hooks/use-employees'
 import { showAlertDialog } from '../lib/dialog'
-import type { HourlyRateInlineFormValues } from '../schemas/hourly-rate-inline-schema'
+import type { TeamEmployeeContractEditFormValues } from '../schemas/team-employee-contract-edit-schema'
 import { toCents } from '../utils/money'
 import { TeamEditHourlyRateFormCard } from './team-edit-hourly-rate/team-edit-hourly-rate-form-card'
 import {
@@ -24,7 +24,10 @@ export const TeamEditHourlyRatePage = () => {
 
   const selectedEmployee = employees.find((entry) => entry.id === employeeId)
 
-  const onUpdate = async ({ hourlyRate }: HourlyRateInlineFormValues) => {
+  const onUpdate = async ({
+    hourlyRate,
+    displayName,
+  }: TeamEmployeeContractEditFormValues) => {
     let hourlyRateCents = 0
 
     try {
@@ -38,7 +41,7 @@ export const TeamEditHourlyRatePage = () => {
       return
     }
 
-    const updated = await updateHourlyRate(employeeId, hourlyRateCents)
+    const updated = await updateHourlyRate(employeeId, hourlyRateCents, displayName)
     if (!updated) return
     navigate('/employees')
   }

@@ -1,6 +1,7 @@
 import { formatBRL } from '../../utils/money'
 import { formatHoursAndMinutes } from '../../utils/time'
 import type { SummaryEmployeeMonthRow } from '../../hooks/use-summary-month-aggregates-live'
+import { employeeDisplayLabel } from '../../utils/employee-display-label'
 
 type SummaryEmployeeMonthTableProps = {
   rows: SummaryEmployeeMonthRow[]
@@ -25,7 +26,7 @@ export const SummaryEmployeeMonthTable = ({ rows }: SummaryEmployeeMonthTablePro
     <table className="min-w-full text-left text-sm">
       <thead>
         <tr className="border-b border-zinc-800 text-xs uppercase tracking-wide text-zinc-500">
-          <th className="whitespace-nowrap px-3 py-2.5 font-medium">E-mail</th>
+          <th className="whitespace-nowrap px-3 py-2.5 font-medium">Funcionário</th>
           <th className="whitespace-nowrap px-3 py-2.5 font-medium">Horas</th>
           <th className="whitespace-nowrap px-3 py-2.5 font-medium">Valor/h</th>
           <th className="whitespace-nowrap px-3 py-2.5 font-medium">Valor</th>
@@ -36,7 +37,19 @@ export const SummaryEmployeeMonthTable = ({ rows }: SummaryEmployeeMonthTablePro
           const hourlyCents = effectiveHourlyRateCents(row.amountCents, row.hours)
           return (
             <tr key={row.employmentContractId} className="bg-zinc-900/40">
-              <td className="whitespace-nowrap px-3 py-2.5 text-zinc-200">{row.email}</td>
+              <td className="max-w-[14rem] px-3 py-2.5 text-zinc-200">
+                <span className="block truncate font-medium text-zinc-100">
+                  {employeeDisplayLabel({
+                    employee_email: row.email,
+                    employee_display_name: row.displayName,
+                  })}
+                </span>
+                {row.displayName?.trim() ? (
+                  <span className="mt-0.5 block truncate text-xs text-zinc-500">
+                    {row.email}
+                  </span>
+                ) : null}
+              </td>
               <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">
                 {formatHoursAndMinutes(row.hours)}
               </td>

@@ -64,6 +64,7 @@ export class TimeEntriesRepository {
           employment_contract:employment_contracts!inner(
             id,
             employee_email,
+            employee_display_name,
             manager_profile_id
           ),
           project:projects(
@@ -147,6 +148,11 @@ export class TimeEntriesRepository {
         ? {
             id: String(ecRaw.id ?? ''),
             employee_email: String(ecRaw.employee_email ?? ''),
+            employee_display_name:
+              ecRaw.employee_display_name === null ||
+              ecRaw.employee_display_name === undefined
+                ? null
+                : String(ecRaw.employee_display_name),
           }
         : undefined
 

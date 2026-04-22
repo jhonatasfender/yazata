@@ -13,6 +13,7 @@ import { SummaryLiveProvider } from './summary-live-context'
 import { SummaryRecentEntriesDesktop } from './summary-recent-entries-desktop'
 import { SummaryRecentEntriesMobile } from './summary-recent-entries-mobile'
 import { SummaryStatCards } from './summary-stat-cards'
+import { employeeDisplayLabel } from '../../utils/employee-display-label'
 
 export type SummarySectionProps = {
   title: string
@@ -143,7 +144,9 @@ export const SummarySection = ({
       if (!issueEntryIds.has(e.id)) continue
       const cid = e.employment_contract_id
       if (!cid || byContract.has(cid)) continue
-      const label = e.employee?.employee_email?.trim() || `Contrato ${cid.slice(0, 8)}…`
+      const label = e.employee
+        ? employeeDisplayLabel(e.employee)
+        : `Contrato ${cid.slice(0, 8)}…`
       byContract.set(cid, label)
     }
     return [...byContract.values()].sort((a, b) => a.localeCompare(b))
