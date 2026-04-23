@@ -223,6 +223,14 @@ export class WorkspaceRepository {
     return { companyId, managerProfileId }
   }
 
+  async setMyEmployeeDisplayName(displayName: string): Promise<void> {
+    const { error } = await this.client.rpc('set_my_employee_display_name', {
+      p_display_name: displayName,
+    })
+
+    if (error) throw new Error(error.message)
+  }
+
   async updateCompany(params: {
     companyId: string
     legalName: string

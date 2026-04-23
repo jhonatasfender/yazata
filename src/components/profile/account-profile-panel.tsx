@@ -1,4 +1,8 @@
 import { UserProfile } from '@clerk/react'
+import { useOutletContext } from 'react-router-dom'
+
+import type { AppLayoutContext } from '../app-layout'
+import { EmployeeDisplayNameCard } from './employee-display-name-card'
 
 const embeddedProfileSectionLayout = {
   profileSection: {
@@ -21,8 +25,16 @@ const embeddedProfileSectionLayout = {
   },
 }
 
-export const AccountProfilePanel = () => (
+export const AccountProfilePanel = () => {
+  const { employee } = useOutletContext<AppLayoutContext>()
+
+  return (
   <div className="account-profile-fill min-h-0 min-w-0 flex-1 overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900/60">
+    {employee ? (
+      <div className="min-w-0 border-b border-zinc-800/80 p-4 sm:p-5">
+        <EmployeeDisplayNameCard />
+      </div>
+    ) : null}
     <UserProfile
       routing="path"
       path="/profile"
@@ -62,4 +74,5 @@ export const AccountProfilePanel = () => (
       }}
     />
   </div>
-)
+  )
+}

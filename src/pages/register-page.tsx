@@ -82,15 +82,33 @@ export const RegisterPage = () => {
     employmentContractId: employee?.id,
   })
 
-  useEffect(() => {
+  const syncQuickEntryFromStorage = () => {
     if (!employee) return
-
     const state = readQuickEntryLocalStateForEmployee(employee.id)
-    if (!state) return
+    if (!state) {
+      setQuickEntryId(null)
+      setQuickEntryStartedAt(null)
+      setQuickEntryLocalState(null)
+      return
+    }
 
     setQuickEntryId(state.id)
     setQuickEntryStartedAt(state.startedAt)
     setQuickEntryLocalState(state)
+  }
+
+  useEffect(() => {
+    syncQuickEntryFromStorage()
+  }, [employee])
+
+  useEffect(() => {
+    if (!employee) return
+    const onStorage = (e: StorageEvent) => {
+      if (e.storageArea !== window.localStorage) return
+      syncQuickEntryFromStorage()
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [employee])
 
   useEffect(() => {
@@ -232,16 +250,24 @@ export const RegisterPage = () => {
         : QUICK_ENTRY_IN_PROGRESS_DESCRIPTION
 
     const startDate = new Date()
+    const startMs = startDate.getTime()
     const startedAtIso = startDate.toISOString()
-    const startTime = toLocalTime(startDate, true)
     const oneSecondAfterStart = new Date(startDate.getTime() + 1_000)
+    const startWorkDate = toLocalDate(startDate)
+    let startTime = toLocalTime(startDate, true)
+    let endTime = toLocalTime(oneSecondAfterStart, true)
+
+    if (toLocalDate(oneSecondAfterStart) !== startWorkDate) {
+      startTime = '23:59:58'
+      endTime = '23:59:59'
+    }
 
     setQuickEntryStartedAt(startedAtIso)
 
     const entryId = await createEntryAndGetId({
-      workDate: toLocalDate(startDate),
+      workDate: startWorkDate,
       startTime,
-      endTime: toLocalTime(oneSecondAfterStart, true),
+      endTime,
       description: descriptionForCreate,
       projectId: quickEntryPersistRef.current.projectId,
     })
@@ -252,13 +278,12 @@ export const RegisterPage = () => {
     }
 
     setQuickEntryId(entryId)
-    const nowMs = Date.now()
     setQuickEntryLocalState({
       employeeId: employee.id,
       id: entryId,
       startedAt: startedAtIso,
       accumulatedRunningMs: 0,
-      runningSinceMs: nowMs,
+      runningSinceMs: startMs,
     })
   }
 
@@ -273,7 +298,25 @@ export const RegisterPage = () => {
     }
 
     const startDate = new Date(quickEntryStartedAt)
-    const endDate = new Date()
+    const nowMs = Date.now()
+    const stateFromStorage = employee
+      ? readQuickEntryLocalStateForEmployee(employee.id)
+      : null
+    const effectiveState =
+      stateFromStorage && stateFromStorage.id === quickEntryId
+        ? stateFromStorage
+        : quickEntryLocalState && quickEntryLocalState.id === quickEntryId
+          ? quickEntryLocalState
+          : null
+    const elapsedFromTimer =
+      effectiveState &&
+      (!employee || effectiveState.employeeId === employee.id)
+        ? quickEntryElapsedMs(effectiveState, nowMs)
+        : null
+    const endDate =
+      elapsedFromTimer !== null
+        ? new Date(startDate.getTime() + elapsedFromTimer)
+        : new Date(nowMs)
     const workDate = toLocalDate(startDate)
     const startTime = toLocalTime(startDate, true)
     let endTime = toLocalTime(endDate, true)
